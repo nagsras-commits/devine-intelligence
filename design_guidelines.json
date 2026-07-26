@@ -1,0 +1,106 @@
+{
+  "theme": "Sacred and Warm (Temple-Inspired)",
+  "color_palette": {
+    "primary": "#D4AF37",
+    "secondary": "#8B0000",
+    "background_light": "#FDF5E6",
+    "surface_light": "#FFFBF4",
+    "text_primary_light": "#2C1B18",
+    "text_secondary_light": "#5C4033",
+    "accent": "#FF9933",
+    "background_dark": "#0B1021",
+    "surface_dark": "#131A33",
+    "text_primary_dark": "#FDF5E6",
+    "text_secondary_dark": "#D1C4A5",
+    "border_gold": "#B8860B"
+  },
+  "typography": {
+    "headings": "Cormorant Garamond, Cinzel, or Marcellus (Serif, Elegant, Display)",
+    "body": "Lora, Merriweather, or Noto Serif (Clean, legible Serif/Humanist sans, NO Inter/Roboto)",
+    "sanskrit": "Tiro Devanagari Sanskrit or Noto Serif Devanagari (Must be used for all Shloka/Mantra text)",
+    "instructions": "Import Google Fonts for the chosen families. Use font-serif for all main titles, section headers, and deity names. Use devanagari font explicitly for shlokas. Do not use generic fonts."
+  },
+  "visual_enhancers": {
+    "background_texture": "Subtle grain or parchment paper texture overlay applied globally with mix-blend-multiply.",
+    "shadows": "Diya-glow shadows: soft, warm orange/gold tinted shadows (e.g., `shadow-[0_4px_20px_rgba(212,175,55,0.15)]` for light, `shadow-[0_4px_20px_rgba(255,153,51,0.2)]` for dark).",
+    "borders": "Gold hairline dividers (1px solid border-t or border-b using #D4AF37 with 30-50% opacity).",
+    "motifs": "Kolam patterns, mandala geometry, Om symbols embedded subtly in backgrounds, empty states, or card corners with low opacity (5-10%).",
+    "shapes": "Arch shapes (like temple doors) for deity cards, rounded-xl or rounded-2xl for standard cards."
+  },
+  "components": {
+    "deity_cards": {
+      "style": "Soft glow behind image, arch-shaped tops (or rounded-t-full), bordered in thin gold, containing Sanskrit (Devanagari) + English names.",
+      "hover": "Slight upward translation (-translate-y-1), intensify the diya-glow shadow, smooth transition.",
+      "content": "Image, Name (Sanskrit + English), small icon indicating Ashtottara/Sahasranama availability."
+    },
+    "persistent_audio_player": {
+      "style": "Fixed bottom bar (fixed bottom-0 w-full z-50), glassmorphism over sandalwood/indigo background (backdrop-blur-xl). Thin gold top border.",
+      "elements": "Pulsing OM indicator (animated text or SVG), track name (Sanskrit/English), mute/play toggle icon, chant switcher dropdown, decorative waveform visualization.",
+      "interaction": "Replaces continuous background OM chant when a specific sloka/song is tapped. Global switchable background chant."
+    },
+    "panchangam_calendar": {
+      "style": "Traditional almanac look. Grid layout with daily data (Tithi, Nakshatra, Yoga, Karana, Vara, Sunrise/Sunset).",
+      "festival_column": "Side column on desktop, stacked on mobile. Contains story, significance, pooja vidhi, slokas with parchment background."
+    },
+    "dinacharya_timeline": {
+      "style": "Vertical timeline with circular node points (gold border, saffron fill) representing daily rituals (Wake up, Bhumi Vandanam, Snana, etc.).",
+      "interaction": "Clicking a node expands an accordion or card with the specific sloka (Sanskrit + transliteration + meaning) and an inline audio play button."
+    },
+    "language_switcher": {
+      "style": "Top right elegant dropdown or toggle (e.g., EN | SA | TE | HI | TA). Used to switch transliteration and meanings globally."
+    }
+  },
+  "layouts": {
+    "mobile": "Mobile-first approach. Fixed persistent audio player at bottom (add padding-bottom to body to prevent overlap). Stacked sections (Panchangam -> Dinacharya -> Deities).",
+    "desktop": "Asymmetric layout. Left sidebar for Navigation, Panchangam & timeline, right larger masonry or grid area for Deity library and detailed reading.",
+    "spacing": "Generous spacing. Use p-6, p-8, gap-6, gap-8 to give elements breathing room."
+  },
+  "motion": {
+    "micro_animations": [
+      "Diya flicker: slow pulse animation on opacity of warm drop-shadows or a tiny flame SVG.",
+      "Chant pulse: gentle scaling/breathing animation (scale 1 to 1.05) of the OM symbol in the audio player.",
+      "Staggered reveals: Framer motion staggered entry for timeline items and deity cards on scroll/load."
+    ]
+  },
+  "image_urls": {
+    "hero_background": {
+      "url": "https://images.unsplash.com/photo-1524443169398-9aa1ceab67d5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxoaW5kdSUyMHRlbXBsZSUyMGFyY2hpdGVjdHVyZXxlbnwwfHx8fDE3ODUwMjY1MTB8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Hindu temple architecture for top header/hero backgrounds",
+      "category": "hero"
+    },
+    "diya": {
+      "url": "https://images.unsplash.com/photo-1605455021703-13b57dcb9efa?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzh8MHwxfHNlYXJjaHwxfHxkaXlhJTIwb2lsJTIwbGFtcCUyMGxpZ2h0JTIwZ2xvd3xlbnwwfHx8fDE3ODUwMjY1MTl8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Lit diya oil lamp for ritual/festival sections",
+      "category": "decorative"
+    },
+    "deity_placeholder": {
+      "url": "https://images.unsplash.com/photo-1539014861783-7ac37e9d290c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDB8MHwxfHNlYXJjaHwxfHxoaW5kdSUyMGRlaXR5JTIwZ29kJTIwc3RhdHVlJTIwZ29sZHxlbnwwfHx8fDE3ODUwMjY1MTV8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Golden Ganesha statue for Deity library placeholders",
+      "category": "deity"
+    },
+    "temple_architecture": {
+      "url": "https://images.unsplash.com/photo-1677434654722-69e7ba88b4ef?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwzfHxoaW5kdSUyMHRlbXBsZSUyMGFyY2hpdGVjdHVyZXxlbnwwfHx8fDE3ODUwMjY1MTB8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Intricate temple tower for background/ambient sections",
+      "category": "background"
+    }
+  },
+  "instructions_to_main_agent": "Implement a toggle for Light (Sandalwood/Gold) and Dark (Indigo Night Sky) modes. Ensure all interactive elements have 'data-testid' attributes (e.g., data-testid='play-chant-button'). Avoid default Vercel/Stripe looks. Do not use generic fonts like Inter. Use Shadcn components for UI logic but heavily customize their styling to remove standard borders and add the specified diya-glow shadows and gold hairline borders. Implement Language switcher and audio play logic conditionally mocking the actual audio elements.",
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Prioritize optical alignment over strict mathematical alignment.",
+    "Do not center-align paragraph text; keep reading text left-aligned.",
+    "Add generous padding (p-6, p-8) to container elements.",
+    "Ensure minimum WCAG AA contrast ratios, especially for gold/orange text on cream.",
+    "Incorporate layered z-index hierarchy.",
+    "Never use purely transparent overlays; add a slight blur (backdrop-blur-md) or tint.",
+    "All interactive elements MUST include a data-testid attribute in kebab-case based on their role.",
+    "Avoid the generic 'AI slop' aesthetic by avoiding uniform borders, generic gradients, and standard system fonts."
+  ],
+  "accessibility": {
+    "focus_states": "High contrast ring using Deep Saffron or Gold (`focus:ring-2 focus:ring-[#FF9933]`).",
+    "contrast": "Text over textured backgrounds must be fully legible, use drop shadows if necessary.",
+    "motion": "Respect prefers-reduced-motion for pulsing OM and diya flickers."
+  },
+  "3d_libraries_and_media": {
+    "instructions": "3D libraries not strictly required, focus on high-fidelity 2D UI with depth via shadows. Use SVG icons for mandalas and Om symbols. Audio playback can be visually simulated."
+  }
+}
