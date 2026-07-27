@@ -4,6 +4,7 @@ import { useApp } from "@/context/AppContext";
 import { pickLang, t } from "@/lib/i18n";
 import * as Lucide from "lucide-react";
 import { ChevronDown, Package, Leaf, Info } from "lucide-react";
+import PradakshinaCounter from "@/components/PradakshinaCounter";
 
 function StepCard({ step, open, onToggle, lang }) {
   const Icon = (step.icon && Lucide[step.icon]) || Lucide.Circle;
@@ -157,6 +158,9 @@ export default function TulasiPooja() {
           <StepCard key={s.id} step={s} open={openIds.has(s.id)} onToggle={() => toggle(s.id)} lang={lang} />
         ))}
       </div>
+
+      {/* Pradakshina Counter (Kārtika-masa daily practice) */}
+      <PradakshinaCounter target={108} />
 
       {/* Kartika masa note */}
       <section className="sacred-card grain">
