@@ -6,6 +6,7 @@ const KEY_TODAY = "dj_prad_today"; // { date: 'YYYY-MM-DD', count: n }
 const KEY_LIFE  = "dj_prad_life";
 const KEY_BELL  = "dj_prad_bell";
 const KEY_MANTRA = "dj_prad_mantra";
+const KEY_DAYS  = "dj_prad_days";  // { "YYYY-MM-DD": true } — read by PradakshinaStreak
 
 // Synthesize a warm temple-bell chime with the Web Audio API.
 // No network fetch, no CORS issues, works everywhere.
@@ -123,6 +124,17 @@ export default function PradakshinaCounter({ target = 108 }) {
       const nx = Math.max(0, c + delta);
       if (delta > 0) setLifetime((l) => l + delta);
       if (nx === target) setCelebrate(true);
+      // Auto-mark today as "108 complete" once the target is reached (so the streak lights up)
+      if (nx >= target) {
+        try {
+          const raw = localStorage.getItem(KEY_DAYS);
+          const map = raw ? JSON.parse(raw) : {};
+          if (!map[todayStr]) {
+            map[todayStr] = true;
+            localStorage.setItem(KEY_DAYS, JSON.stringify(map));
+          }
+        } catch {}
+      }
       // Play sounds on positive increment
       if (delta > 0) {
         if (bellOn) {
