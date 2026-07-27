@@ -120,6 +120,33 @@
 
   .arch-top { border-top-left-radius: 999px; border-top-right-radius: 999px; }
 
+  /* Shimmering metallic-gold text — used for the app title */
+  .text-gold-shimmer {
+    background: linear-gradient(
+      100deg,
+      #a5731a 0%,
+      #d99a2b 10%,
+      #f6d97b 22%,
+      #fff4c0 34%,
+      #f6d97b 46%,
+      #c48a1f 60%,
+      #f6d97b 74%,
+      #fff4c0 86%,
+      #a5731a 100%
+    );
+    background-size: 250% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    filter: drop-shadow(0 1px 0 rgba(120, 76, 20, 0.35)) drop-shadow(0 0 14px rgba(255, 208, 88, 0.30));
+    animation: gold-shimmer 5.5s linear infinite;
+  }
+  @keyframes gold-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -50% 0; }
+  }
+
   .grain {
     position: relative;
   }
