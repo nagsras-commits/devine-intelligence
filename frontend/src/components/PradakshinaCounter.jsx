@@ -1,15 +1,77 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Flame, RotateCw, RotateCcw, Trash2 } from "lucide-react";
+import { Flame, RotateCw, RotateCcw, Trash2, Bell, BellOff, Mic, MicOff } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 
 const KEY_TODAY = "dj_prad_today"; // { date: 'YYYY-MM-DD', count: n }
 const KEY_LIFE  = "dj_prad_life";
+const KEY_BELL  = "dj_prad_bell";
+const KEY_MANTRA = "dj_prad_mantra";
+
+// Synthesize a warm temple-bell chime with the Web Audio API.
+// No network fetch, no CORS issues, works everywhere.
+function playBellChime(ctx, when = 0, opts = {}) {
+  const master = ctx.createGain();
+  master.gain.value = opts.volume ?? 0.35;
+  master.connect(ctx.destination);
+  const now = ctx.currentTime + when;
+  // Harmonic partials for a metallic bell timbre (base + fifth + octave + double-octave)
+  const partials = [
+    { f: 523.25, g: 0.9, decay: 1.6 },  // C5 fundamental
+    { f: 659.25, g: 0.55, decay: 1.3 }, // E5
+    { f: 987.77, g: 0.35, decay: 1.0 }, // B5 (perfect fifth-ish)
+    { f: 1318.5, g: 0.22, decay: 0.7 }, // E6
+    { f: 2093.0, g: 0.12, decay: 0.5 }, // C7 sparkle
+  ];
+  partials.forEach((p) => {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = p.f;
+    // Slight inharmonic detune for realism
+    osc.detune.value = (Math.random() - 0.5) * 4;
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(p.g, now + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + p.decay);
+    osc.connect(g).connect(master);
+    osc.start(now);
+    osc.stop(now + p.decay + 0.05);
+  });
+  // Also add a very quick low-freq strike thump
+  const thump = ctx.createOscillator();
+  const tg = ctx.createGain();
+  thump.type = "sine";
+  thump.frequency.setValueAtTime(180, now);
+  thump.frequency.exponentialRampToValueAtTime(80, now + 0.12);
+  tg.gain.setValueAtTime(0.35, now);
+  tg.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+  thump.connect(tg).connect(master);
+  thump.start(now);
+  thump.stop(now + 0.2);
+}
+
+function speakMantra(text) {
+  try {
+    const synth = window.speechSynthesis;
+    if (!synth) return;
+    // Cancel any queued utterance so rapid taps don't back up
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.85;
+    u.pitch = 0.9;
+    u.volume = 0.55;
+    // Prefer an Indian English or Hindi voice when available
+    const voices = synth.getVoices?.() || [];
+    const preferred = voices.find((v) => /hi|IN|Indian|Sanskrit/i.test(v.lang + " " + v.name));
+    if (preferred) u.voice = preferred;
+    synth.speak(u);
+  } catch {}
+}
 
 // A small, satisfying tap-to-count pradakṣiṇā counter (target 108).
 // - Persists today's count by date, resets when date changes
 // - Tracks lifetime total across all days
 // - Diya-glow flash + subtle haptic-like pulse on tap
-// - Milestone announcements at 27, 54, 81, 108
+// - Temple-bell chime + optional "Om Tulasyai Namaḥ" whisper
 export default function PradakshinaCounter({ target = 108 }) {
   const { lang } = useApp();
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
@@ -18,7 +80,21 @@ export default function PradakshinaCounter({ target = 108 }) {
   const [lifetime, setLifetime] = useState(0);
   const [flash, setFlash] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
+  const [bellOn, setBellOn] = useState(() => localStorage.getItem(KEY_BELL) !== "false");
+  const [mantraOn, setMantraOn] = useState(() => localStorage.getItem(KEY_MANTRA) === "true");
   const flashTimer = useRef(null);
+  const audioCtxRef = useRef(null);
+
+  const ensureAudioCtx = () => {
+    if (!audioCtxRef.current) {
+      const C = window.AudioContext || window.webkitAudioContext;
+      if (C) audioCtxRef.current = new C();
+    }
+    if (audioCtxRef.current?.state === "suspended") {
+      audioCtxRef.current.resume().catch(() => {});
+    }
+    return audioCtxRef.current;
+  };
 
   // Load from LS on mount
   useEffect(() => {
@@ -39,19 +115,36 @@ export default function PradakshinaCounter({ target = 108 }) {
   useEffect(() => {
     localStorage.setItem(KEY_LIFE, String(lifetime));
   }, [lifetime]);
+  useEffect(() => { localStorage.setItem(KEY_BELL, String(bellOn)); }, [bellOn]);
+  useEffect(() => { localStorage.setItem(KEY_MANTRA, String(mantraOn)); }, [mantraOn]);
 
   const doIncrement = (delta = 1) => {
     setCount((c) => {
       const nx = Math.max(0, c + delta);
       if (delta > 0) setLifetime((l) => l + delta);
       if (nx === target) setCelebrate(true);
+      // Play sounds on positive increment
+      if (delta > 0) {
+        if (bellOn) {
+          const ctx = ensureAudioCtx();
+          if (ctx) {
+            // If crossing a milestone (27/54/81) or the final 108, play a double-strike
+            if (nx === target || nx === 27 || nx === 54 || nx === 81) {
+              playBellChime(ctx, 0, { volume: 0.5 });
+              playBellChime(ctx, 0.28, { volume: 0.4 });
+            } else {
+              playBellChime(ctx, 0);
+            }
+          }
+        }
+        if (mantraOn) speakMantra("Om Tulasyai Namaha");
+      }
       return nx;
     });
     if (delta > 0) {
       setFlash(true);
       clearTimeout(flashTimer.current);
       flashTimer.current = setTimeout(() => setFlash(false), 550);
-      // Vibrate on mobile if supported
       try { navigator.vibrate?.(15); } catch {}
     }
   };
@@ -192,6 +285,34 @@ export default function PradakshinaCounter({ target = 108 }) {
           </div>
 
           <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setBellOn((v) => !v)}
+              data-testid="pradakshina-bell-toggle"
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs transition border ${
+                bellOn
+                  ? "bg-[hsl(var(--gold)/0.2)] border-[hsl(var(--gold))] text-kumkum dark:text-[hsl(var(--gold))]"
+                  : "gold-border hover:bg-[hsl(var(--gold)/0.1)]"
+              }`}
+              aria-pressed={bellOn}
+              title={bellOn ? "Bell chime on" : "Bell chime off"}
+            >
+              {bellOn ? <Bell className="w-3.5 h-3.5" /> : <BellOff className="w-3.5 h-3.5" />}
+              Bell
+            </button>
+            <button
+              onClick={() => setMantraOn((v) => !v)}
+              data-testid="pradakshina-mantra-toggle"
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs transition border ${
+                mantraOn
+                  ? "bg-[hsl(var(--gold)/0.2)] border-[hsl(var(--gold))] text-kumkum dark:text-[hsl(var(--gold))]"
+                  : "gold-border hover:bg-[hsl(var(--gold)/0.1)]"
+              }`}
+              aria-pressed={mantraOn}
+              title={mantraOn ? "Mantra whisper on" : "Mantra whisper off"}
+            >
+              {mantraOn ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
+              Mantra
+            </button>
             <button
               onClick={() => doIncrement(-1)}
               data-testid="pradakshina-back"
