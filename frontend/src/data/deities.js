@@ -4,29 +4,29 @@
 
 const IMG = {
   ganesha:
-    "https://images.unsplash.com/photo-1631981245670-9bd0f2fbcd12?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxnYW5lc2hhfGVufDB8fHx8MTc4NTAyNjUxOHww&ixlib=rb-4.1.0&q=85&w=800",
+    "https://upload.wikimedia.org/wikipedia/commons/c/c9/Ganapati1.jpg",
   shiva:
-    "https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxzaGl2YXxlbnwwfHx8fDE3ODUwMjY1MTh8MA&ixlib=rb-4.1.0&q=85&w=800",
+    "https://upload.wikimedia.org/wikipedia/commons/b/bf/Shiva_as_the_Lord_of_Dance_LACMA_edit.jpg",
   vishnu:
-    "https://images.unsplash.com/photo-1621112904887-419379ce6824?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHx2aXNobnV8ZW58MHx8fHwxNzg1MDI2NTE4fDA&ixlib=rb-4.1.0&q=85&w=800",
+    "https://upload.wikimedia.org/wikipedia/commons/c/c6/Vishnu_and_Lakshmi_on_Shesha_Naga%2C_ca_1870.jpg",
   krishna:
-    "https://images.unsplash.com/photo-1701444729317-14ce4c3a9948?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxrcmlzaG5hfGVufDB8fHx8MTc4NTAyNjUxOHww&ixlib=rb-4.1.0&q=85&w=800",
+    "https://upload.wikimedia.org/wikipedia/commons/3/31/Yashoda_with_Krishna%2C_Raja_Ravi_Varma.jpg",
   rama:
-    "https://images.unsplash.com/photo-1728737581415-a70dc826b90a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxyYW1hfGVufDB8fHx8MTc4NTAyNjUxOHww&ixlib=rb-4.1.0&q=85&w=800",
+    "https://upload.wikimedia.org/wikipedia/commons/d/d1/Ramapanchayan%2C_Raja_Ravi_Varma_%28Lithograph%29.jpg",
   hanuman:
-    "https://images.unsplash.com/photo-1697577418970-95d99b5a55cf?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxoYW51bWFufGVufDB8fHx8MTc4NTAyNjUxOHww&ixlib=rb-4.1.0&q=85&w=800",
+    "https://upload.wikimedia.org/wikipedia/commons/3/38/Hanuman_showing_Rama_in_His_heart.jpg",
   lakshmi:
-    "https://images.unsplash.com/photo-1666185846203-f7a72b3fbf34?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxsYWtzaG1pfGVufDB8fHx8MTc4NTAyNjUxOHww&ixlib=rb-4.1.0&q=85&w=800",
+    "https://upload.wikimedia.org/wikipedia/commons/a/a6/Raja_Ravi_Varma%2C_Goddess_Lakshmi%2C_1896.jpg",
   saraswati:
-    "https://images.unsplash.com/photo-1697577418992-c8e084ea0eeb?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxzYXJhc3dhdGl8ZW58MHx8fHwxNzg1MDI2NTE4fDA&ixlib=rb-4.1.0&q=85&w=800",
+    "https://upload.wikimedia.org/wikipedia/commons/d/df/Saraswati_by_Raja_Ravi_Varma.jpg",
   durga:
-    "https://images.unsplash.com/photo-1601301909948-b8a2bc21a2b8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxkdXJnYXxlbnwwfHx8fDE3ODUwMjY1MTh8MA&ixlib=rb-4.1.0&q=85&w=800",
+    "https://upload.wikimedia.org/wikipedia/commons/7/7f/Durga_by_Raja_Ravi_Varma.jpg",
   subrahmanya:
-    "https://images.unsplash.com/photo-1590125060821-4b1d18b6b6b5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxtdXJ1Z2FufGVufDB8fHx8MTc4NTAyNjUxOHww&ixlib=rb-4.1.0&q=85&w=800",
+    "https://upload.wikimedia.org/wikipedia/commons/8/81/Murugan_by_Raja_Ravi_Varma.jpg",
   surya:
-    "https://images.unsplash.com/photo-1541873676-a18131494184?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxzdW58ZW58MHx8fHwxNzg1MDI2NTE4fDA&ixlib=rb-4.1.0&q=85&w=800",
+    "https://upload.wikimedia.org/wikipedia/commons/2/2c/Twelve_Heavenly_Deities_%28Devas%29%2C_Nitten_%28%C4%80bitya_or_S%C5%ABrya%29.jpg",
   ayyappa:
-    "https://images.unsplash.com/photo-1580889272861-dc2dbf9ebbf5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwxfHxheXlhcHBhfGVufDB8fHx8MTc4NTAyNjUxOHww&ixlib=rb-4.1.0&q=85&w=800",
+    "https://upload.wikimedia.org/wikipedia/commons/7/7f/Idol_of_Lord_Ayyappa_in_a_Hall_at_Sabarimala.jpg",
 };
 
 // Generic royalty-free devotional audio (Archive.org public domain)

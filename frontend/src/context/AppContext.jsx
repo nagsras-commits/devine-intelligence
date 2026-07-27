@@ -41,7 +41,7 @@ export function AppProvider({ children }) {
     if (!audioRef.current) {
       const el = new Audio();
       el.loop = true;
-      el.volume = 0.55;
+      el.volume = 0.95;
       el.preload = "auto";
       el.crossOrigin = "anonymous";
       audioRef.current = el;

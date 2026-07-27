@@ -6,7 +6,7 @@ import { pickLang, t } from "@/lib/i18n";
 import { RITUALS } from "@/data/rituals";
 import { DEITIES } from "@/data/deities";
 import { FESTIVALS } from "@/data/festivals";
-import DeityIcon from "@/components/DeityIcon";
+import DeityImage from "@/components/DeityImage";
 import { ArrowRight, Sunrise, CalendarDays, Sparkles, Flame } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -199,10 +199,11 @@ export default function Home() {
               className="group relative rounded-2xl overflow-hidden gold-border diya-glow hover:diya-glow-strong transition-all bg-card"
             >
               <div className="aspect-[3/4] relative">
-                <DeityIcon deity={d} lang={lang} size="sm" />
+                <DeityImage deity={d} lang={lang} />
               </div>
               <div className="absolute inset-x-0 bottom-0 p-3 text-white">
-                <div className="text-sm font-medium">{pickLang(d.name, lang)}</div>
+                <div className="font-devanagari text-base leading-none drop-shadow-lg">{pickLang(d.name, "sa")}</div>
+                <div className="text-sm mt-0.5 font-medium drop-shadow-lg">{pickLang(d.name, lang)}</div>
               </div>
             </Link>
           ))}

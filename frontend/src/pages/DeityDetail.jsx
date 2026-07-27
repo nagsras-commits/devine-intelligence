@@ -4,7 +4,7 @@ import { DEITIES } from "@/data/deities";
 import { useApp } from "@/context/AppContext";
 import { pickLang, t } from "@/lib/i18n";
 import SlokaCard from "@/components/SlokaCard";
-import DeityIcon from "@/components/DeityIcon";
+import DeityImage from "@/components/DeityImage";
 import { ArrowLeft, Play, BookOpen, Music, Sparkles } from "lucide-react";
 
 export default function DeityDetail() {
@@ -22,7 +22,7 @@ export default function DeityDetail() {
       {/* Hero */}
       <section className="grid md:grid-cols-2 gap-8 items-center">
         <div className="relative rounded-3xl overflow-hidden gold-border diya-glow-strong aspect-square">
-          <DeityIcon deity={deity} lang={lang} />
+          <DeityImage deity={deity} lang={lang} />
         </div>
         <div>
           <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Divine Presence</div>

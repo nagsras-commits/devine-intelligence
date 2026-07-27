@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { DEITIES } from "@/data/deities";
 import { useApp } from "@/context/AppContext";
 import { pickLang, t } from "@/lib/i18n";
-import DeityIcon from "@/components/DeityIcon";
+import DeityImage from "@/components/DeityImage";
 
 export default function Deities() {
   const { lang } = useApp();
@@ -26,11 +26,12 @@ export default function Deities() {
             className="group relative rounded-2xl overflow-hidden gold-border diya-glow hover:diya-glow-strong transition-all bg-card"
           >
             <div className="aspect-[3/4] relative transition-transform duration-500 group-hover:scale-[1.02]">
-              <DeityIcon deity={d} lang={lang} />
+              <DeityImage deity={d} lang={lang} />
             </div>
             <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-              <div className="text-base font-medium">{pickLang(d.name, lang)}</div>
-              <div className="mt-1 text-[10px] uppercase tracking-widest opacity-80">
+              <div className="font-devanagari text-xl leading-none drop-shadow-lg">{pickLang(d.name, "sa")}</div>
+              <div className="text-base font-medium mt-1 drop-shadow-lg">{pickLang(d.name, lang)}</div>
+              <div className="mt-1 text-[10px] uppercase tracking-widest opacity-90">
                 {d.stotras?.length || 0} stotras • {d.ashtottara_sample?.length || 0}+ names
               </div>
             </div>

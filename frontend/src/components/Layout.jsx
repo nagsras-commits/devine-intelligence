@@ -13,6 +13,8 @@ const OmSymbol = ({ className = "" }) => (
   <span className={`font-devanagari ${className}`} aria-hidden>ॐ</span>
 );
 
+const LOGO_URL = "https://customer-assets-eiarnc6j.emergentagent.net/job_divine-dharma-daily/artifacts/ylzii3mp_165b9e9c-bb2d-4147-a8ae-4a58b631a103.png";
+
 export default function Layout({ children }) {
   const { lang, setLang, muted, isPlaying, toggleMute, chantId, setChantId,
           currentTrack, nowPlaying, stopTrackAndResumeBackground } = useApp();
@@ -44,8 +46,8 @@ export default function Layout({ children }) {
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center gap-4">
           <NavLink to="/" data-testid="brand-link" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 rounded-full grid place-items-center bg-gradient-to-br from-[hsl(var(--saffron))] to-[hsl(var(--gold))] diya-glow">
-              <OmSymbol className="text-2xl text-white leading-none animate-flicker" />
+            <div className="relative w-11 h-11 rounded-full overflow-hidden diya-glow ring-2 ring-[hsl(var(--gold)/0.6)]">
+              <img src={LOGO_URL} alt="Divine Journey" className="w-full h-full object-cover animate-flicker" />
             </div>
             <div className="hidden sm:block leading-tight">
               <div className="font-display text-lg text-kumkum dark:text-[hsl(var(--gold))]">{t(lang, "app_title")}</div>
