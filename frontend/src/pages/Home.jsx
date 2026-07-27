@@ -7,7 +7,7 @@ import { RITUALS } from "@/data/rituals";
 import { DEITIES } from "@/data/deities";
 import { FESTIVALS } from "@/data/festivals";
 import DeityImage from "@/components/DeityImage";
-import { ArrowRight, Sunrise, CalendarDays, Sparkles, Flame } from "lucide-react";
+import { ArrowRight, Sunrise, CalendarDays, Sparkles, Flame, Hash, PenLine } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -176,6 +176,58 @@ export default function Home() {
               </pre>
             </Link>
           ))}
+        </div>
+      </section>
+
+      {/* Sādhanā tiles — Japa & Rāma Koṭi */}
+      <section>
+        <div className="flex items-end justify-between mb-6">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Sādhanā</div>
+            <h2 className="text-3xl font-semibold text-kumkum dark:text-[hsl(var(--gold))]">Daily Practices</h2>
+          </div>
+        </div>
+        <div className="grid md:grid-cols-2 gap-5">
+          <Link
+            to="/japa"
+            data-testid="home-japa-tile"
+            className="sacred-card grain group relative overflow-hidden"
+            style={{ background: "radial-gradient(ellipse at right, hsl(30 90% 55% / 0.14) 0%, transparent 60%)" }}
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-12 h-12 rounded-full grid place-items-center bg-gradient-to-br from-[hsl(var(--kumkum))] to-[hsl(var(--saffron))] text-white diya-glow">
+                <Hash className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold text-kumkum dark:text-[hsl(var(--gold))]">Japa Counter</h3>
+                <p className="text-sm text-foreground/75 mt-1">
+                  Chant your deity's bīja mantra. Complete <b>1,00,00,116</b> japa to receive a divine certificate.
+                </p>
+              </div>
+              <ArrowRight className="w-5 h-5 text-saffron group-hover:translate-x-1 transition-transform" />
+            </div>
+            <div className="mt-3 font-devanagari text-3xl text-saffron/80 tracking-wider">ॐ नमः शिवाय</div>
+          </Link>
+          <Link
+            to="/rama-koti"
+            data-testid="home-ramakoti-tile"
+            className="sacred-card grain group relative overflow-hidden"
+            style={{ background: "radial-gradient(ellipse at right, hsl(120 45% 35% / 0.14) 0%, transparent 60%)" }}
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-12 h-12 rounded-full grid place-items-center bg-gradient-to-br from-[hsl(var(--kumkum))] to-[hsl(var(--saffron))] text-white diya-glow">
+                <PenLine className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold text-kumkum dark:text-[hsl(var(--gold))]">Rāma Koṭi (Likhita Japa)</h3>
+                <p className="text-sm text-foreground/75 mt-1">
+                  Write the sacred name — Rāma, Om Namaḥ Śivāya, Kṛṣṇa & more. Reach <b>1,00,00,116</b> to unlock your certificate.
+                </p>
+              </div>
+              <ArrowRight className="w-5 h-5 text-saffron group-hover:translate-x-1 transition-transform" />
+            </div>
+            <div className="mt-3 font-devanagari text-3xl text-emerald-800/80 tracking-wider">राम राम राम</div>
+          </Link>
         </div>
       </section>
 

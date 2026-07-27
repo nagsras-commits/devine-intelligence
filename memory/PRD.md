@@ -9,6 +9,15 @@ Show Panchangam. Contain all Hindu Gods/Goddesses with slokas, mantras, ashtotta
 sahasranamas and songs. Festivals: notify beforehand with full story, celebration,
 pooja vidhi, mantras — all in one column.
 
+Additional user requests:
+- Bulk deity list (Venkateswara, Padmavathi, Narasimha, Varahi, Lalitha, Kali, Dattatreya,
+  Navagraha, Kubera, Gayatri, Parvathi, Raghavendra, Annapurna, Chamundeshwari,
+  Mahalakshmi Kolhapur, Ganga, Bhairava, Dhanvantari, Varaha, Santoshi — 31+ total).
+- Japa Counter for deity's bīja mantra — 1,00,00,116 target — Certificate on completion.
+- Rāma Koṭi / Likhita Japa writing board — 1,00,00,116 target — Certificate on completion.
+- Multi-lingual (EN/TE/HI/TA).
+- Persistent OM background loop.
+
 ## Users
 - Devout Hindus seeking daily spiritual guidance
 - Students of Vedic dharma / Sanskrit learners
@@ -16,51 +25,71 @@ pooja vidhi, mantras — all in one column.
 
 ## Core Requirements (Locked)
 - Multilingual: Sanskrit Devanagari + English/Telugu/Hindi/Tamil transliteration & meaning
-- Persistent background chant: OM by default, switchable to Gāyatrī / Mahāmṛtyuñjaya /
-  Hanumān Chālīsā / Viṣṇu Sahasranāmam / Lalitā Sahasranāmam
+- Persistent background chant: OM by default; switchable to ≥ 10 alternatives now
 - Tap-to-play individual slokas replaces chant, resumes after stop
 - Panchāngam (Tithi, Nakshatra, Yoga, Karana, Vara, Sunrise, Sunset, Deity of Day)
 - Festivals with story + celebration + pooja vidhi + mantras
-- Deities library (Ganesha, Shiva, Vishnu, Krishna, Rama, Hanuman, Lakshmi, Saraswati,
-  Durga, Subrahmanya, Surya, Ayyappa)
-- No login for MVP; device-id based ritual tracking
+- 32 deities with mūla mantra, dhyāna śloka, stotras, ashtottara, songs
+- Nitya Pooja Vidhanam + Tulasi Pooja Vidhanam (fully implemented with authentic Telugu)
+- 108 Pradakṣiṇā counter + 30-day streak + Sadhana certificate (Tulasi)
+- Japa Counter (bīja mantra) with 1,00,00,116 target + certificate
+- Rāma Koṭi / Likhita Japa board with 1,00,00,116 target + certificate
+- No login for MVP; device-id + localStorage based tracking
 
 ## Architecture
 - **Backend**: FastAPI + MongoDB (motor). Endpoints: `/api/panchangam`, `/api/panchangam/week`,
-  `/api/bookmarks` (POST/GET/DELETE), `/api/rituals/done` (POST/GET/DELETE)
-- **Frontend**: React + Tailwind + shadcn/ui, react-router-dom v7, axios
+  `/api/bookmarks`, `/api/rituals/done`
+- **Frontend**: React + Tailwind + shadcn/ui, react-router-dom v7, axios, html2canvas
 - **Content**: All slokas / stotras / festival data in static JS files (offline-friendly)
+  - `deities.js` (12 core) + `deities_extended.js` (20 additional)
+- **Storage**: localStorage for japa counts, likhita counts, ritual streak, bookmarks
 - **Design**: Sandalwood/gold/kumkum-red palette, Cormorant Garamond + Tiro Devanagari Sanskrit,
-  temple-arch deity niches, diya-glow shadows, kolam-dot patterns, flicker/breathe animations
+  temple-arch deity niches, diya-glow shadows, kolam-dot patterns
 
-## Implemented (2026-02-01)
-- [x] Multilingual switcher (EN/TE/HI/TA) with per-language transliteration & meaning
-- [x] Persistent bottom audio player with chant switcher (6 chants) and unmute-tap-to-start
-- [x] Sloka-play integration that pauses background chant and resumes on stop
-- [x] Home dashboard with hero, today's panchāngam, upcoming festival, deity + ritual previews
-- [x] Dinacharya timeline (10 rituals) with expand-collapse + ritual-done tracking via API
-- [x] Deities grid (12 deities) with detail page: mūla mantra, dhyāna śloka, stotras, ashtottara
-- [x] Panchāngam page: 7-day strip + day detail with all 6 anga + deity-of-day
-- [x] Festivals page: sidebar list + detail column with story/celebration/pooja/mantras
-- [x] Backend endpoints tested (7/7 pytest pass)
-- [x] Frontend flows tested (100% pass)
+## Implemented
+### 2026-02-01
+- [x] Multilingual switcher (EN/TE/HI/TA), persistent audio player, sloka-play integration
+- [x] Home dashboard, Dinacharya timeline, Deities grid (12), Panchāngam, Festivals
+- [x] Backend endpoints (7/7 pytest pass), Frontend flows (100% pass)
+
+### 2026-02 (later iterations)
+- [x] Nitya Pooja Vidhanam with authentic Telugu Sankalpam + Panchāngam integration
+- [x] Tulasi Pooja Vidhanam: 108 pradakṣiṇā counter (Web Audio bell + SpeechSynthesis whisper)
+- [x] 30-day diya streak (localStorage), Sadhana Certificate (html2canvas export)
+
+### 2026-02-27 (this session)
+- [x] **Added 20 new deities** (total 32) — Venkateswara, Padmavathi, Narasimha, Varaha,
+      Dattatreya, Lalitha, Kali, Varahi, Navagraha, Kubera, Gayatri, Parvathi, Raghavendra,
+      Annapurna, Chamundeshwari, Mahalakshmi (Kolhapur), Ganga, Bhairava, Dhanvantari, Santoshi
+- [x] **Extended background chants** — Venkateswara Suprabhatam, Datta Bāvani, Rāghavendra
+      Stotra, Navagraha Stotram (10+ total tracks now)
+- [x] **Japa Counter** (`/japa`) — deity-wise bīja mantra japa counter, 108-round tracking,
+      Web Audio bell chime every 108/27, milestones ladder (108→1008→10K→1L→10L→1Cr→Target),
+      Undo, Reset, cross-deity total, certificate at **1,00,00,116**
+- [x] **Rāma Koṭi / Likhita Japa** (`/rama-koti`) — 5 name presets (Rāma, Om Namaḥ Śivāya,
+      Kṛṣṇa, Hanumān, Sāī Rām), fuzzy matching accepts EN/DEV/TE variants, 108-dot page grid,
+      milestones ladder, chime, certificate at **1,00,00,116**
+- [x] **NamaCertificate** — reusable html2canvas-exported certificate for both features
+- [x] Home page has Sādhanā section with tiles for Japa & Rāma Koṭi
 
 ## Backlog / Deferred
-### P1 (soon)
-- Full 108-name Aṣṭottara for every deity (currently 8-12 sample names)
-- Sahasranāma pages (currently only titles listed)
-- More festivals (regional: Onam, Vishu, Bihu, Ugadi, Ratha Saptami…)
-- Location-aware sunrise/sunset (currently static)
-- Emergent Google login for cross-device bookmark sync
+### P0 (next)
+- Authentication (Emergent Google Login) — save counts across devices
+- Migrate deity data → MongoDB (before adding Sahasranamas)
 
-### P2 (later)
+### P1
+- Full 108 & 1008 names for each deity
+- Sahasranāma pages (currently titles listed)
+- Dinacharya slokas per micro-moment (bathing, food, journey, sleeping)
+- Location-aware sunrise/sunset
+- Handwritten canvas draw mode for Likhita Japa (currently text-input)
+- Optional Wikimedia image fixes for extended deities
+
+### P2
 - Devotional video playback synced with sloka audio
-- Reminder notifications (e.g., Sandhyavandanam time, ekādaśī)
-- More accurate drik-panchang calculations (pyswisseph)
-- User-uploaded sloka recitations / community playlists
+- Reminder notifications (Sandhyavandanam time, ekādaśī)
+- Drik-panchang precision (pyswisseph)
+- Community playlists
 
-## Next Tasks
-1. Add full 108 & 1008 name lists (Ganeśa first)
-2. Add Emergent Google login for personalization
-3. Add Onam, Ugādi, Vaisākhi, Ratha Saptami, Hanumat Jayanti festivals
-4. Add search across all slokas
+## Test Credentials
+None — app is fully local-first (localStorage), no auth yet.

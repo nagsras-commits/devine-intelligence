@@ -11,6 +11,8 @@ import Panchangam from "@/pages/Panchangam";
 import Festivals from "@/pages/Festivals";
 import NityaPooja from "@/pages/NityaPooja";
 import TulasiPooja from "@/pages/TulasiPooja";
+import JapaCounter from "@/pages/JapaCounter";
+import RamaKoti from "@/pages/RamaKoti";
 import { Toaster } from "@/components/ui/sonner";
 
 function App() {
@@ -28,6 +30,8 @@ function App() {
               <Route path="/festivals" element={<Festivals />} />
               <Route path="/pooja" element={<NityaPooja />} />
               <Route path="/pooja/tulasi" element={<TulasiPooja />} />
+              <Route path="/japa" element={<JapaCounter />} />
+              <Route path="/rama-koti" element={<RamaKoti />} />
             </Routes>
           </Layout>
         </BrowserRouter>

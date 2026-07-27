@@ -1,6 +1,7 @@
 // Deities data - Sanskrit + multi-language transliteration & meaning.
 // Each deity has: id, name (multi-lang), image (unsplash CC), color accent,
 // mula_mantra, dhyana_sloka, popular_stotras, ashtottara (108 names sample), sahasranama (title only).
+import { EXTENDED_DEITIES, EXTENDED_BACKGROUND_CHANTS } from "./deities_extended";
 
 const IMG = {
   ganesha:
@@ -49,6 +50,7 @@ export const BACKGROUND_CHANTS = [
   { id: "hanuman", label: "Hanumān Chālīsā", url: A.hanuman },
   { id: "vishnu", label: "Viṣṇu Sahasranāmam", url: A.vishnu },
   { id: "lalita", label: "Lalitā Sahasranāmam", url: A.lalita },
+  ...EXTENDED_BACKGROUND_CHANTS,
 ];
 
 // helper builder
@@ -179,4 +181,5 @@ export const DEITIES = [
     ["Śāstā", "Manikaṇṭha", "Dharmaśāstā", "Hariharaputra", "Bhūtanātha", "Ayyanār"],
     []
   ),
+  ...EXTENDED_DEITIES,
 ];
