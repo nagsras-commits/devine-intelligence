@@ -52,23 +52,30 @@ export default function Layout({ children }) {
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center gap-4">
           <NavLink to="/" data-testid="brand-link" className="flex items-center gap-3 group">
-            <div className="relative w-11 h-11 rounded-full overflow-hidden diya-glow ring-2 ring-[hsl(var(--gold)/0.6)]">
-              <img src={LOGO_URL} alt="Divine Journey" className="w-full h-full object-cover animate-flicker" />
+            <div className="relative w-11 h-11 rounded-full overflow-hidden diya-glow ring-2 ring-[hsl(var(--gold)/0.6)] shrink-0">
+              <img src={LOGO_URL} alt="Devine Intelligence" className="w-full h-full object-cover animate-flicker" />
             </div>
-            <div className="hidden sm:block leading-tight">
-              <div className="font-display text-lg text-kumkum dark:text-[hsl(var(--gold))]">{t(lang, "app_title")}</div>
-              <div className="text-[11px] text-muted-foreground italic">{t(lang, "app_subtitle")}</div>
+            <div className="leading-tight" data-testid="brand-title">
+              <div
+                className="font-display font-semibold text-sm sm:text-base md:text-lg lg:text-xl whitespace-nowrap bg-gradient-to-r from-[hsl(var(--kumkum))] via-[hsl(var(--saffron))] to-[hsl(var(--gold))] bg-clip-text text-transparent"
+                style={{ letterSpacing: "0.12em", textShadow: "0 0 24px hsl(43 74% 55% / 0.15)" }}
+              >
+                DEVINE INTELLIGENCE
+              </div>
+              <div className="hidden sm:block text-[10px] md:text-[11px] text-muted-foreground italic mt-0.5">
+                {t(lang, "app_subtitle")}
+              </div>
             </div>
           </NavLink>
 
-          <nav className="hidden md:flex items-center gap-1 ml-4">
+          <nav className="hidden lg:flex items-center gap-0.5 ml-2 xl:ml-4">
             {nav.map((n) => (
               <NavLink
                 key={n.key}
                 to={n.to}
                 data-testid={`nav-${n.key}`}
                 className={({ isActive }) =>
-                  `px-3 py-2 rounded-full text-sm font-medium transition-all ${
+                  `px-2.5 xl:px-3 py-2 rounded-full text-xs xl:text-sm font-medium whitespace-nowrap transition-all ${
                     isActive
                       ? "bg-[hsl(var(--gold)/0.15)] text-kumkum dark:text-[hsl(var(--gold))] gold-border"
                       : "text-foreground/75 hover:text-foreground hover:bg-[hsl(var(--gold)/0.08)]"
@@ -114,8 +121,8 @@ export default function Layout({ children }) {
           </div>
         </div>
 
-        {/* Mobile nav */}
-        <nav className="md:hidden overflow-x-auto no-scrollbar px-3 pb-2 flex gap-1">
+        {/* Mobile / tablet nav */}
+        <nav className="lg:hidden overflow-x-auto no-scrollbar px-3 pb-2 flex gap-1">
           {nav.map((n) => (
             <NavLink
               key={n.key}
