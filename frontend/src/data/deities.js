@@ -1,33 +1,23 @@
-// Deities data - Sanskrit + multi-language transliteration & meaning.
-// Each deity has: id, name (multi-lang), image (unsplash CC), color accent,
-// mula_mantra, dhyana_sloka, popular_stotras, ashtottara (108 names sample), sahasranama (title only).
+// All deity portraits are AI-generated in cinematic photorealistic style, self-hosted at
+// /app/backend/static/deities/*.png (served via FastAPI at /api/static/deities/{id}.png)
 import { EXTENDED_DEITIES, EXTENDED_BACKGROUND_CHANTS } from "./deities_extended";
 
+const BACKEND = process.env.REACT_APP_BACKEND_URL || "";
+const D = (id) => `${BACKEND}/api/static/deities/${id}.png`;
+
 const IMG = {
-  ganesha:
-    "https://upload.wikimedia.org/wikipedia/commons/c/c9/Ganapati1.jpg",
-  shiva:
-    "https://upload.wikimedia.org/wikipedia/commons/b/bf/Shiva_as_the_Lord_of_Dance_LACMA_edit.jpg",
-  vishnu:
-    "https://upload.wikimedia.org/wikipedia/commons/c/c6/Vishnu_and_Lakshmi_on_Shesha_Naga%2C_ca_1870.jpg",
-  krishna:
-    "https://upload.wikimedia.org/wikipedia/commons/3/31/Yashoda_with_Krishna%2C_Raja_Ravi_Varma.jpg",
-  rama:
-    "https://upload.wikimedia.org/wikipedia/commons/d/d1/Ramapanchayan%2C_Raja_Ravi_Varma_%28Lithograph%29.jpg",
-  hanuman:
-    "https://upload.wikimedia.org/wikipedia/commons/3/38/Hanuman_showing_Rama_in_His_heart.jpg",
-  lakshmi:
-    "https://upload.wikimedia.org/wikipedia/commons/a/a6/Raja_Ravi_Varma%2C_Goddess_Lakshmi%2C_1896.jpg",
-  saraswati:
-    "https://upload.wikimedia.org/wikipedia/commons/d/df/Saraswati_by_Raja_Ravi_Varma.jpg",
-  durga:
-    "https://upload.wikimedia.org/wikipedia/commons/7/7f/Durga_by_Raja_Ravi_Varma.jpg",
-  subrahmanya:
-    "https://upload.wikimedia.org/wikipedia/commons/8/81/Murugan_by_Raja_Ravi_Varma.jpg",
-  surya:
-    "https://upload.wikimedia.org/wikipedia/commons/2/2c/Twelve_Heavenly_Deities_%28Devas%29%2C_Nitten_%28%C4%80bitya_or_S%C5%ABrya%29.jpg",
-  ayyappa:
-    "https://upload.wikimedia.org/wikipedia/commons/7/7f/Idol_of_Lord_Ayyappa_in_a_Hall_at_Sabarimala.jpg",
+  ganesha: D("ganesha"),
+  shiva: D("shiva"),
+  vishnu: D("vishnu"),
+  krishna: D("krishna"),
+  rama: D("rama"),
+  hanuman: D("hanuman"),
+  lakshmi: D("lakshmi"),
+  saraswati: D("saraswati"),
+  durga: D("durga"),
+  subrahmanya: D("subrahmanya"),
+  surya: D("surya"),
+  ayyappa: D("ayyappa"),
 };
 
 // Generic royalty-free devotional audio (Archive.org public domain — verified 200 OK)
