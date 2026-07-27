@@ -1,0 +1,207 @@
+import React, { useEffect, useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
+import { useApp } from "@/context/AppContext";
+import { LANGUAGES, t } from "@/lib/i18n";
+import { BACKGROUND_CHANTS } from "@/data/deities";
+import { Volume2, VolumeX, Home, Sunrise, Sparkles, CalendarDays, Music2, Languages, X } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem,
+} from "@/components/ui/dropdown-menu";
+
+const OmSymbol = ({ className = "" }) => (
+  <span className={`font-devanagari ${className}`} aria-hidden>ॐ</span>
+);
+
+export default function Layout({ children }) {
+  const { lang, setLang, muted, isPlaying, toggleMute, chantId, setChantId,
+          currentTrack, nowPlaying, stopTrackAndResumeBackground } = useApp();
+  const [scrolled, setScrolled] = useState(false);
+  const loc = useLocation();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const nav = [
+    { to: "/", label: t(lang, "home"), icon: Home, key: "home" },
+    { to: "/dinacharya", label: t(lang, "dinacharya"), icon: Sunrise, key: "dinacharya" },
+    { to: "/deities", label: t(lang, "deities"), icon: Sparkles, key: "deities" },
+    { to: "/panchangam", label: t(lang, "panchangam"), icon: CalendarDays, key: "panchangam" },
+    { to: "/festivals", label: t(lang, "festivals"), icon: Music2, key: "festivals" },
+  ];
+
+  return (
+    <div className="App min-h-screen">
+      {/* HEADER */}
+      <header
+        data-testid="app-header"
+        className={`sticky top-0 z-40 transition-all duration-300 ${
+          scrolled ? "backdrop-blur-xl bg-background/75 border-b border-[hsl(var(--gold)/0.35)]" : "bg-transparent"
+        }`}
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center gap-4">
+          <NavLink to="/" data-testid="brand-link" className="flex items-center gap-3 group">
+            <div className="relative w-10 h-10 rounded-full grid place-items-center bg-gradient-to-br from-[hsl(var(--saffron))] to-[hsl(var(--gold))] diya-glow">
+              <OmSymbol className="text-2xl text-white leading-none animate-flicker" />
+            </div>
+            <div className="hidden sm:block leading-tight">
+              <div className="font-display text-lg text-kumkum dark:text-[hsl(var(--gold))]">{t(lang, "app_title")}</div>
+              <div className="text-[11px] text-muted-foreground italic">{t(lang, "app_subtitle")}</div>
+            </div>
+          </NavLink>
+
+          <nav className="hidden md:flex items-center gap-1 ml-4">
+            {nav.map((n) => (
+              <NavLink
+                key={n.key}
+                to={n.to}
+                data-testid={`nav-${n.key}`}
+                className={({ isActive }) =>
+                  `px-3 py-2 rounded-full text-sm font-medium transition-all ${
+                    isActive
+                      ? "bg-[hsl(var(--gold)/0.15)] text-kumkum dark:text-[hsl(var(--gold))] gold-border"
+                      : "text-foreground/75 hover:text-foreground hover:bg-[hsl(var(--gold)/0.08)]"
+                  }`
+                }
+              >
+                {n.label}
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="ml-auto flex items-center gap-2">
+            {/* Language switcher */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  data-testid="lang-switcher"
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm gold-border hover:bg-[hsl(var(--gold)/0.1)] transition"
+                  aria-label="Change language"
+                >
+                  <Languages className="w-4 h-4" />
+                  <span className="hidden sm:inline">{LANGUAGES.find(l => l.code === lang)?.native}</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="parchment gold-border">
+                <DropdownMenuLabel className="font-display">Language</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={lang} onValueChange={setLang}>
+                  {LANGUAGES.map((l) => (
+                    <DropdownMenuRadioItem
+                      key={l.code}
+                      value={l.code}
+                      data-testid={`lang-option-${l.code}`}
+                      className="cursor-pointer"
+                    >
+                      <span className="mr-2">{l.native}</span>
+                      <span className="text-xs text-muted-foreground">({l.label})</span>
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Mobile nav */}
+        <nav className="md:hidden overflow-x-auto no-scrollbar px-3 pb-2 flex gap-1">
+          {nav.map((n) => (
+            <NavLink
+              key={n.key}
+              to={n.to}
+              data-testid={`mobile-nav-${n.key}`}
+              className={({ isActive }) =>
+                `whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium ${
+                  isActive
+                    ? "bg-[hsl(var(--gold)/0.15)] text-kumkum dark:text-[hsl(var(--gold))] gold-border"
+                    : "text-foreground/70 hover:text-foreground"
+                }`
+              }
+            >
+              <n.icon className="inline w-3.5 h-3.5 mr-1 -mt-0.5" />
+              {n.label}
+            </NavLink>
+          ))}
+        </nav>
+      </header>
+
+      {/* MAIN */}
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-10">{children}</main>
+
+      {/* PERSISTENT AUDIO PLAYER */}
+      <div
+        data-testid="persistent-audio-player"
+        className="fixed bottom-0 inset-x-0 z-50 backdrop-blur-xl bg-background/85 border-t border-[hsl(var(--gold)/0.5)]"
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center gap-3">
+          <button
+            onClick={toggleMute}
+            data-testid="chant-toggle"
+            className="relative w-11 h-11 rounded-full grid place-items-center bg-gradient-to-br from-[hsl(var(--gold))] to-[hsl(var(--saffron))] text-white diya-glow-strong hover:scale-105 transition-transform"
+            aria-label={isPlaying ? "Pause chant" : "Play chant"}
+          >
+            {isPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+            {isPlaying && (
+              <span className="absolute inset-0 rounded-full border-2 border-white/40 animate-breathe" aria-hidden />
+            )}
+          </button>
+
+          <div className="flex-1 min-w-0">
+            <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+              {nowPlaying ? t(lang, "now_playing") : t(lang, "background_chant")}
+            </div>
+            <div className="flex items-center gap-2 mt-0.5">
+              <OmSymbol className={`text-lg text-saffron ${isPlaying ? "animate-flicker" : "opacity-60"}`} />
+              <div data-testid="track-title" className="truncate text-sm font-medium">{currentTrack.title}</div>
+            </div>
+            {!isPlaying && (
+              <div className="text-[10px] italic text-muted-foreground mt-0.5">{t(lang, "unmute_chant")}</div>
+            )}
+          </div>
+
+          {nowPlaying ? (
+            <button
+              onClick={stopTrackAndResumeBackground}
+              data-testid="stop-sloka-btn"
+              className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs gold-border hover:bg-[hsl(var(--kumkum)/0.15)] transition"
+              aria-label="Stop sloka"
+            >
+              <X className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Stop</span>
+            </button>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  data-testid="chant-switcher"
+                  className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs gold-border hover:bg-[hsl(var(--gold)/0.12)] transition"
+                >
+                  <Music2 className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{t(lang, "switch_chant")}</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="parchment gold-border">
+                <DropdownMenuLabel className="font-display">{t(lang, "background_chant")}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={chantId} onValueChange={setChantId}>
+                  {BACKGROUND_CHANTS.map((c) => (
+                    <DropdownMenuRadioItem
+                      key={c.id}
+                      value={c.id}
+                      data-testid={`chant-option-${c.id}`}
+                      className="cursor-pointer"
+                    >
+                      {c.label}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
