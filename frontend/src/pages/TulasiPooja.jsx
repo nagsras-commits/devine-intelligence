@@ -6,6 +6,7 @@ import * as Lucide from "lucide-react";
 import { ChevronDown, Package, Leaf, Info } from "lucide-react";
 import PradakshinaCounter from "@/components/PradakshinaCounter";
 import PradakshinaStreak from "@/components/PradakshinaStreak";
+import SadhanaCertificate from "@/components/SadhanaCertificate";
 
 function StepCard({ step, open, onToggle, lang }) {
   const Icon = (step.icon && Lucide[step.icon]) || Lucide.Circle;
@@ -137,6 +138,9 @@ export default function TulasiPooja() {
 
       {/* 30-day pradakṣiṇā streak — appears prominently at the top */}
       <PradakshinaStreak days={30} target={108} />
+
+      {/* Sadhana Certificate — surfaces when 25+/30 days done, unlocks fully at 30 */}
+      <SadhanaCertificate />
 
       {/* Materials */}
       <section className="sacred-card grain">
