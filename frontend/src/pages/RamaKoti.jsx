@@ -1,13 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/context/AppContext";
 import NamaCertificate from "@/components/NamaCertificate";
-import { RotateCcw, Sparkles, PenLine, ChevronDown, Check, Volume2, VolumeX } from "lucide-react";
+import WritingPad from "@/components/WritingPad";
+import { RotateCcw, Sparkles, PenLine, ChevronDown, Check, Volume2, VolumeX, Keyboard, Brush } from "lucide-react";
 
 const TARGET = 10000116;
 const MILESTONES = [116, 1116, 10116, 100116, 1000116, TARGET];
 const KEY_KOTI = "dj_ramakoti_counts";    // { [nameId]: totalCount }
 const KEY_ACTIVE = "dj_ramakoti_active";
 const KEY_BELL = "dj_ramakoti_bell";
+const KEY_MODE = "dj_ramakoti_mode";      // 'type' | 'write'
 
 const loadCounts = () => { try { return JSON.parse(localStorage.getItem(KEY_KOTI) || "{}"); } catch { return {}; } };
 const saveCounts = (o) => localStorage.setItem(KEY_KOTI, JSON.stringify(o));
@@ -103,6 +105,7 @@ export default function RamaKoti() {
   const [error, setError] = useState("");
   const [milestone, setMilestone] = useState(null);
   const [bell, setBell] = useState(() => localStorage.getItem(KEY_BELL) !== "false");
+  const [mode, setMode] = useState(() => localStorage.getItem(KEY_MODE) || "type");
   const inputRef = useRef(null);
 
   const preset = useMemo(() => NAME_PRESETS.find((p) => p.id === activeId) || NAME_PRESETS[0], [activeId]);
@@ -116,20 +119,13 @@ export default function RamaKoti() {
   useEffect(() => saveCounts(counts), [counts]);
   useEffect(() => { localStorage.setItem(KEY_ACTIVE, activeId); }, [activeId]);
   useEffect(() => { localStorage.setItem(KEY_BELL, String(bell)); }, [bell]);
+  useEffect(() => { localStorage.setItem(KEY_MODE, mode); }, [mode]);
 
-  const write = (raw) => {
-    const value = normalize(raw);
-    if (!value) { setError("Write the divine name first."); return; }
-    const accepted = preset.accepted.map(normalize);
-    if (!accepted.some((a) => value === a || value.replace(/[^\w\s]/g, "") === a.replace(/[^\w\s]/g, ""))) {
-      setError(`Please write "${preset.display}" (or accepted variants).`);
-      return;
-    }
-    setError("");
+  // Shared counter increment (used by both typing and writing pad)
+  const increment = () => {
     const newCount = count + 1;
     setCounts((prev) => ({ ...prev, [activeId]: newCount }));
     setFlash(true);
-    setEntry("");
     setTimeout(() => setFlash(false), 220);
     if (bell) {
       if (newCount % 108 === 0) chime(0.45);
@@ -140,6 +136,19 @@ export default function RamaKoti() {
       setTimeout(() => setMilestone(null), 3500);
       if (bell) chime(0.6);
     }
+  };
+
+  const write = (raw) => {
+    const value = normalize(raw);
+    if (!value) { setError("Write the divine name first."); return; }
+    const accepted = preset.accepted.map(normalize);
+    if (!accepted.some((a) => value === a || value.replace(/[^\w\s]/g, "") === a.replace(/[^\w\s]/g, ""))) {
+      setError(`Please write "${preset.display}" (or accepted variants).`);
+      return;
+    }
+    setError("");
+    setEntry("");
+    increment();
     inputRef.current?.focus();
   };
 
@@ -231,30 +240,67 @@ export default function RamaKoti() {
             </div>
             <div className="text-xs text-muted-foreground text-center md:text-left">/ {fmt(TARGET)} • Rounds of 108: <b className="text-foreground">{fmt(totalRounds)}</b></div>
 
-            <div className="mt-4 relative">
-              <input
-                ref={inputRef}
-                value={entry}
-                onChange={(e) => { setEntry(e.target.value); if (error) setError(""); }}
-                onKeyDown={onKey}
-                data-testid="ramakoti-input"
-                placeholder={`Type "${preset.display}" and press Enter`}
-                className="w-full rounded-lg pl-3 pr-16 py-3 font-devanagari text-2xl gold-border bg-card focus:outline-none focus:ring-2 focus:ring-[hsl(var(--gold))]"
-                autoComplete="off"
-                spellCheck={false}
-              />
+            {/* Mode toggle: Type / Write with finger */}
+            <div className="mt-4 inline-flex items-center rounded-full gold-border p-1 bg-card" data-testid="ramakoti-mode-toggle">
               <button
-                onClick={() => write(entry)}
-                data-testid="ramakoti-add-btn"
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm bg-gradient-to-r from-[hsl(var(--kumkum))] to-[hsl(var(--saffron))] text-white hover:opacity-90 diya-glow"
+                onClick={() => { setMode("type"); setError(""); }}
+                data-testid="ramakoti-mode-type"
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition ${mode === "type" ? "bg-gradient-to-r from-[hsl(var(--kumkum))] to-[hsl(var(--saffron))] text-white diya-glow" : "text-foreground/70 hover:text-foreground"}`}
               >
-                <Check className="w-4 h-4" /> Add
+                <Keyboard className="w-3.5 h-3.5" /> Type
+              </button>
+              <button
+                onClick={() => { setMode("write"); setError(""); }}
+                data-testid="ramakoti-mode-write"
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition ${mode === "write" ? "bg-gradient-to-r from-[hsl(var(--kumkum))] to-[hsl(var(--saffron))] text-white diya-glow" : "text-foreground/70 hover:text-foreground"}`}
+              >
+                <Brush className="w-3.5 h-3.5" /> Write with finger
               </button>
             </div>
-            {error && <div data-testid="ramakoti-error" className="mt-2 text-xs text-red-600">{error}</div>}
-            <div className="mt-1 text-[11px] text-muted-foreground">Press <kbd className="px-1 py-0.5 rounded bg-muted text-[10px]">Enter</kbd> after each name.</div>
+
+            {mode === "type" ? (
+              <>
+                <div className="mt-4 relative">
+                  <input
+                    ref={inputRef}
+                    value={entry}
+                    onChange={(e) => { setEntry(e.target.value); if (error) setError(""); }}
+                    onKeyDown={onKey}
+                    data-testid="ramakoti-input"
+                    placeholder={`Type "${preset.display}" and press Enter`}
+                    className="w-full rounded-lg pl-3 pr-16 py-3 font-devanagari text-2xl gold-border bg-card focus:outline-none focus:ring-2 focus:ring-[hsl(var(--gold))]"
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                  <button
+                    onClick={() => write(entry)}
+                    data-testid="ramakoti-add-btn"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm bg-gradient-to-r from-[hsl(var(--kumkum))] to-[hsl(var(--saffron))] text-white hover:opacity-90 diya-glow"
+                  >
+                    <Check className="w-4 h-4" /> Add
+                  </button>
+                </div>
+                {error && <div data-testid="ramakoti-error" className="mt-2 text-xs text-red-600">{error}</div>}
+                <div className="mt-1 text-[11px] text-muted-foreground">Press <kbd className="px-1 py-0.5 rounded bg-muted text-[10px]">Enter</kbd> after each name.</div>
+              </>
+            ) : (
+              <div className="mt-4 text-[11px] text-muted-foreground">
+                Use the pad below to draw the sacred name with your finger, stylus or mouse.
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Writing pad — shows only in "write" mode */}
+        {mode === "write" && (
+          <div className="mt-6">
+            <WritingPad
+              onSubmit={increment}
+              accent={preset.accent}
+              displayHint={preset.display}
+            />
+          </div>
+        )}
 
         {/* Progress */}
         <div className="mt-6 max-w-xl mx-auto">
