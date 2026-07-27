@@ -4,18 +4,19 @@ import { DEITIES } from "@/data/deities";
 import { useApp } from "@/context/AppContext";
 import { pickLang, t } from "@/lib/i18n";
 import DeityImage from "@/components/DeityImage";
+import PageHero from "@/components/PageHero";
 
 export default function Deities() {
   const { lang } = useApp();
   return (
     <div className="space-y-8">
-      <header>
-        <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Devāḥ & Devyaḥ</div>
-        <h1 className="text-4xl sm:text-5xl font-semibold text-kumkum dark:text-[hsl(var(--gold))]">{t(lang, "deities")}</h1>
-        <p className="mt-2 text-foreground/70 max-w-2xl">
-          Mūla mantras, dhyāna ślokas, aṣṭottara names, sahasranāma and songs of every deity.
-        </p>
-      </header>
+      <PageHero
+        bannerId="deities"
+        eyebrow="Devāḥ & Devyaḥ"
+        title={t(lang, "deities")}
+        sanskritTitle="देवाः देव्यश्च"
+        subtitle="Mūla mantras, dhyāna ślokas, aṣṭottara names, sahasranāma and songs of every deity."
+      />
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
         {DEITIES.map((d) => (

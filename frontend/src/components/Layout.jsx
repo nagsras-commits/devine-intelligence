@@ -41,38 +41,16 @@ export default function Layout({ children }) {
     { to: "/festivals", label: t(lang, "festivals"), icon: Music2, key: "festivals" },
   ];
 
-  const BANNER_URL = `${process.env.REACT_APP_BACKEND_URL}/api/static/banners/header.png`;
-
   return (
     <div className="App min-h-screen">
-      {/* HEADER */}
+      {/* HEADER — clean, no banner */}
       <header
         data-testid="app-header"
-        className={`sticky top-0 z-40 transition-all duration-300 relative overflow-hidden ${
-          scrolled ? "backdrop-blur-xl bg-background/75 border-b border-[hsl(var(--gold)/0.35)]" : "bg-transparent"
+        className={`sticky top-0 z-40 transition-all duration-300 ${
+          scrolled ? "backdrop-blur-xl bg-background/85 border-b border-[hsl(var(--gold)/0.35)]" : "bg-background/60 backdrop-blur-sm"
         }`}
       >
-        {/* Catchy banner background */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: `url(${BANNER_URL})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            opacity: scrolled ? 0.28 : 0.42,
-            transition: "opacity 300ms",
-          }}
-        />
-        {/* Gold-warm overlay to keep nav readable */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: "linear-gradient(180deg, hsl(30 90% 55% / 0.10) 0%, hsl(43 74% 55% / 0.06) 50%, hsl(0 0% 0% / 0.10) 100%)",
-          }}
-        />
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center gap-4">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center gap-4">
           <NavLink to="/" data-testid="brand-link" className="flex items-center gap-3 group">
             <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden diya-glow-strong ring-2 ring-[hsl(var(--gold)/0.7)] shrink-0">
               <img src={LOGO_URL} alt="Devine Intelligence" className="w-full h-full object-cover animate-flicker" />

@@ -5,6 +5,7 @@ import { DEITIES } from "@/data/deities";
 import { useApp } from "@/context/AppContext";
 import { pickLang, t } from "@/lib/i18n";
 import DeityImage from "@/components/DeityImage";
+import PageHero from "@/components/PageHero";
 import * as Lucide from "lucide-react";
 import { ChevronDown, BookOpen, Sparkles, Package, ScrollText } from "lucide-react";
 
@@ -173,12 +174,16 @@ export default function NityaPooja() {
 
   return (
     <div className="space-y-10">
+      <PageHero
+        bannerId="nitya_pooja"
+        eyebrow="Nitya Pūjā Vidhānam"
+        title={t(lang, "nitya_pooja")}
+        sanskritTitle="नित्य पूजा"
+        subtitle="The daily sacred ritual — from Saṅkalpam to Śubham, walk the traditional path of worship."
+      />
+
       <header>
-        <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Nitya Pūjā Vidhānam</div>
-        <h1 className="text-4xl sm:text-5xl font-semibold text-kumkum dark:text-[hsl(var(--gold))]">
-          {t(lang, "nitya_pooja")}
-        </h1>
-        <p className={`mt-3 text-foreground/80 max-w-3xl leading-relaxed ${lang === "te" ? "font-telugu" : ""}`}>
+        <p className={`text-foreground/80 max-w-3xl leading-relaxed ${lang === "te" ? "font-telugu" : ""}`}>
           {introText}
         </p>
 

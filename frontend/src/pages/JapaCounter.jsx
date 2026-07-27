@@ -3,6 +3,7 @@ import { DEITIES } from "@/data/deities";
 import { useApp } from "@/context/AppContext";
 import { pickLang } from "@/lib/i18n";
 import NamaCertificate from "@/components/NamaCertificate";
+import PageHero from "@/components/PageHero";
 import { RotateCcw, Volume2, VolumeX, Sparkles, ChevronDown } from "lucide-react";
 
 const TARGET = 10000116; // 1 crore + 116 (1,00,00,116)
@@ -94,17 +95,13 @@ export default function JapaCounter() {
 
   return (
     <div className="space-y-8" data-testid="japa-counter-page">
-      <header>
-        <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Nāma Japa Sādhanā</div>
-        <h1 className="text-4xl sm:text-5xl font-semibold text-kumkum dark:text-[hsl(var(--gold))]">
-          Japa Counter
-          <span className="ml-3 font-devanagari text-3xl align-middle text-saffron">जप</span>
-        </h1>
-        <p className="mt-2 text-foreground/70 max-w-2xl">
-          Chant your beloved deity's <b>bīja mantra</b>. Every tap counts one japa. Complete the sacred sādhanā of
-          <b> 1,00,00,116 </b> (one crore + 116) recitations and receive a divine certificate.
-        </p>
-      </header>
+      <PageHero
+        bannerId="japa"
+        eyebrow="Nāma Japa Sādhanā"
+        title="Japa Counter"
+        sanskritTitle="जप"
+        subtitle="Chant your beloved deity's bīja mantra. Every tap counts one japa — complete the sacred sādhanā of 1,00,00,116 recitations and receive a divine certificate."
+      />
 
       {/* Deity Selector */}
       <section className="sacred-card grain">

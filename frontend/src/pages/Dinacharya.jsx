@@ -4,6 +4,7 @@ import { RITUALS } from "@/data/rituals";
 import { useApp } from "@/context/AppContext";
 import { pickLang, t } from "@/lib/i18n";
 import SlokaCard from "@/components/SlokaCard";
+import PageHero from "@/components/PageHero";
 import * as Lucide from "lucide-react";
 import { Check } from "lucide-react";
 
@@ -36,13 +37,13 @@ export default function Dinacharya() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Dinacharya</div>
-        <h1 className="text-4xl sm:text-5xl font-semibold text-kumkum dark:text-[hsl(var(--gold))]">{t(lang, "dinacharya")}</h1>
-        <p className="mt-2 text-foreground/70 max-w-2xl">
-          A day lived in ślokas — from waking to sleeping, each threshold has a sacred verse.
-        </p>
-      </header>
+      <PageHero
+        bannerId="dinacharya"
+        eyebrow="Dinacharya"
+        title={t(lang, "dinacharya")}
+        sanskritTitle="दिनचर्या"
+        subtitle="A day lived in ślokas — from waking to sleeping, each threshold has a sacred verse."
+      />
 
       <div className="relative pl-6 sm:pl-8">
         {/* Vertical gold line */}

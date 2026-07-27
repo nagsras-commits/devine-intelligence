@@ -41,27 +41,35 @@ export default function Home() {
       {/* HERO */}
       <section
         data-testid="hero-section"
-        className="relative overflow-hidden rounded-3xl gold-border grain diya-glow-strong parchment"
+        className="relative overflow-hidden rounded-3xl gold-border grain diya-glow-strong"
       >
-        <div className="absolute inset-0 kolam-bg opacity-40 pointer-events-none" />
+        {/* Cinematic home banner background */}
+        <img
+          src={`${process.env.REACT_APP_BACKEND_URL}/api/static/banners/home.png`}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
         <div
-          className="absolute right-0 top-0 h-full w-1/2 bg-cover bg-center opacity-25"
+          aria-hidden="true"
+          className="absolute inset-0"
           style={{
-            backgroundImage:
-              "url(https://images.unsplash.com/photo-1524443169398-9aa1ceab67d5?crop=entropy&cs=srgb&fm=jpg&w=1200&q=80)",
-            maskImage: "linear-gradient(to left, black, transparent)",
-            WebkitMaskImage: "linear-gradient(to left, black, transparent)",
+            background:
+              "linear-gradient(90deg, hsl(35 60% 12% / 0.86) 0%, hsl(30 50% 15% / 0.60) 45%, hsl(30 40% 10% / 0.35) 100%)",
           }}
         />
-        <div className="relative px-6 sm:px-10 py-14 sm:py-20 max-w-2xl">
-          <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.25em] gold-border bg-background/60">
+        <div className="absolute inset-0 kolam-bg opacity-25 pointer-events-none" />
+        <div className="relative px-6 sm:px-10 py-14 sm:py-24 max-w-2xl">
+          <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.25em] gold-border bg-black/40 backdrop-blur text-[hsl(var(--gold))]">
             <span className="w-1.5 h-1.5 rounded-full bg-saffron animate-flicker" />
             Sanātana Dharma
           </div>
-          <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-semibold text-kumkum dark:text-[hsl(var(--gold))] leading-[1.05]">
+          <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-bold text-gold-shimmer leading-[1.05]"
+              style={{ letterSpacing: "0.04em", filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.55))" }}>
             {t(lang, "hero_title")}
           </h1>
-          <p className="mt-5 text-base sm:text-lg text-foreground/80 max-w-xl leading-relaxed">
+          <p className="mt-5 text-base sm:text-lg text-[hsl(45_100%_92%)]/95 max-w-xl leading-relaxed"
+             style={{ textShadow: "0 2px 12px rgba(0,0,0,0.6)" }}>
             {t(lang, "hero_sub")}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
@@ -75,7 +83,7 @@ export default function Home() {
             <Link
               to="/deities"
               data-testid="hero-cta-deities"
-              className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 gold-border hover:bg-[hsl(var(--gold)/0.12)] transition"
+              className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 border border-[hsl(var(--gold))] text-[hsl(var(--gold))] bg-black/30 backdrop-blur hover:bg-[hsl(var(--gold)/0.15)] transition"
             >
               {t(lang, "deities")} <Sparkles className="w-4 h-4" />
             </Link>

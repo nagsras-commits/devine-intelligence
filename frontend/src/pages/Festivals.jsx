@@ -4,6 +4,7 @@ import { FESTIVALS } from "@/data/festivals";
 import { useApp } from "@/context/AppContext";
 import { pickLang, t } from "@/lib/i18n";
 import { Flame, ScrollText, BookOpen, Sparkles } from "lucide-react";
+import PageHero from "@/components/PageHero";
 
 export default function Festivals() {
   const { lang } = useApp();
@@ -32,13 +33,13 @@ export default function Festivals() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Utsavāḥ</div>
-        <h1 className="text-4xl sm:text-5xl font-semibold text-kumkum dark:text-[hsl(var(--gold))]">{t(lang, "festivals")}</h1>
-        <p className="mt-2 text-foreground/70 max-w-2xl">
-          Story, celebration, pooja vidhi and mantras — every major festival, all in one column.
-        </p>
-      </header>
+      <PageHero
+        bannerId="festivals"
+        eyebrow="Utsavāḥ"
+        title={t(lang, "festivals")}
+        sanskritTitle="उत्सवाः"
+        subtitle="Story, celebration, pooja vidhi and mantras — every major festival, all in one column."
+      />
 
       <div className="grid lg:grid-cols-[280px,1fr] gap-6">
         {/* List */}

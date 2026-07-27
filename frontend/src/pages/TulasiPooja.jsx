@@ -7,6 +7,7 @@ import { ChevronDown, Package, Leaf, Info } from "lucide-react";
 import PradakshinaCounter from "@/components/PradakshinaCounter";
 import PradakshinaStreak from "@/components/PradakshinaStreak";
 import SadhanaCertificate from "@/components/SadhanaCertificate";
+import PageHero from "@/components/PageHero";
 
 function StepCard({ step, open, onToggle, lang }) {
   const Icon = (step.icon && Lucide[step.icon]) || Lucide.Circle;
@@ -105,15 +106,16 @@ export default function TulasiPooja() {
 
   return (
     <div className="space-y-10">
+      <PageHero
+        bannerId="tulasi_pooja"
+        eyebrow="Tulasi Pūjā Vidhānam"
+        title={t(lang, "tulasi_pooja")}
+        sanskritTitle="तुलसी पूजा"
+        subtitle="The sacred worship of Śrī Tulasī Devī — offerings, mantras, pradakṣiṇā and the Kārtika-māsa vow."
+      />
+
       <header>
-        <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Tulasi Pūjā Vidhānam</div>
-        <div className="flex items-center gap-3 mt-1">
-          <Leaf className="w-9 h-9 text-[hsl(120,45%,35%)] animate-breathe" />
-          <h1 className="text-4xl sm:text-5xl font-semibold text-kumkum dark:text-[hsl(var(--gold))]">
-            {t(lang, "tulasi_pooja")}
-          </h1>
-        </div>
-        <p className={`mt-3 text-foreground/85 max-w-3xl leading-relaxed ${lang === "te" ? "font-telugu" : lang === "ta" ? "font-tamil" : ""}`}>
+        <p className={`text-foreground/85 max-w-3xl leading-relaxed ${lang === "te" ? "font-telugu" : lang === "ta" ? "font-tamil" : ""}`}>
           {introText}
         </p>
 

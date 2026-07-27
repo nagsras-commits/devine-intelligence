@@ -62,17 +62,23 @@ Additional user requests:
       Dattatreya, Lalitha, Kali, Varahi, Navagraha, Kubera, Gayatri, Parvathi, Raghavendra,
       Annapurna, Chamundeshwari, Mahalakshmi (Kolhapur), Ganga, Bhairava, Dhanvantari, Santoshi,
       **Vishwakarma, Veerabrahmendra Swamy**
-- [x] **AI-generated deity portraits** — 22 museum-quality deity images generated using
-      Gemini 3.1 Flash Image (Nano Banana) via EMERGENT_LLM_KEY, self-hosted at
-      `/api/static/deities/{id}.png` (FastAPI static mount). Solves Wikimedia CORS/rate-limit issues.
+- [x] **34 AI-generated cinematic deity portraits** — Gemini 3.1 Flash Image (Nano Banana) via
+      EMERGENT_LLM_KEY. Self-hosted at `/api/static/deities/{id}.png` (FastAPI static mount).
+      Replaces old Ravi Varma paintings with hyper-realistic 8K temple-photo style. Veerabrahmendra
+      uses user-uploaded traditional image.
+- [x] **9 AI-generated page hero banners** — home, dinacharya, nitya_pooja, tulasi_pooja, japa,
+      rama_koti, deities, panchangam, festivals. Each page now has a stunning cinematic hero
+      section with backdrop banner.
+- [x] **PageHero component** — reusable hero with banner background, gold-shimmer animated title,
+      Sanskrit devanagari accent, eyebrow, subtitle. Applied to all main pages.
+- [x] **"DEVINE INTELLIGENCE" brand title** in header — metallic shimmering gold gradient with
+      Cinzel serif, 26px on desktop, letter-spaced elegant style.
 - [x] **Japa Counter** (`/japa`) — 1,00,00,116 target with certificate
 - [x] **Rāma Koṭi / Likhita Japa** (`/rama-koti`) — 21 divine name presets, text + finger writing pad
-- [x] **Finger Writing Pad** — canvas-based drawing with touch/stylus/mouse support, guide overlay,
-      pen colors, stroke width, undo, clear, empty-canvas protection
-- [x] **Extended background chants** — Venkateswara Suprabhatam, Datta Bāvani, Rāghavendra Stotra,
-      Navagraha Stotram (11+ tracks)
+- [x] **Finger Writing Pad** — canvas-based touch/stylus/mouse drawing
+- [x] **11+ background chants** — Suprabhatam, Datta Bāvani, Rāghavendra, Navagraha etc.
 - [x] **NamaCertificate** — reusable html2canvas-exported certificate
-- [x] Home page Sādhanā section with Japa & Rāma Koṭi tiles
+- [x] Home page has Sādhanā section, refreshed hero with new banner
 
 ## Backlog / Deferred
 ### P0 (next)

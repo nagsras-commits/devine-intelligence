@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/context/AppContext";
 import NamaCertificate from "@/components/NamaCertificate";
 import WritingPad from "@/components/WritingPad";
+import PageHero from "@/components/PageHero";
 import { RotateCcw, Sparkles, PenLine, ChevronDown, Check, Volume2, VolumeX, Keyboard, Brush } from "lucide-react";
 
 const TARGET = 10000116;
@@ -348,17 +349,13 @@ export default function RamaKoti() {
 
   return (
     <div className="space-y-8" data-testid="rama-koti-page">
-      <header>
-        <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Likhita Japa Sādhanā</div>
-        <h1 className="text-4xl sm:text-5xl font-semibold text-kumkum dark:text-[hsl(var(--gold))]">
-          Rāma Koṭi & Likhita Nāma
-          <span className="ml-3 font-devanagari text-3xl align-middle text-saffron">रामकोटि</span>
-        </h1>
-        <p className="mt-2 text-foreground/70 max-w-2xl">
-          The ancient sādhanā of writing the divine name. Each written name accumulates spiritual merit —
-          complete the sacred <b>1,00,00,116</b> writings to unlock your Likhita Japa Certificate.
-        </p>
-      </header>
+      <PageHero
+        bannerId="rama_koti"
+        eyebrow="Likhita Japa Sādhanā"
+        title="Rāma Koṭi & Likhita Nāma"
+        sanskritTitle="रामकोटि"
+        subtitle="The ancient sādhanā of writing the divine name. Each written name accumulates spiritual merit — complete the sacred 1,00,00,116 writings to unlock your Likhita Japa Certificate."
+      />
 
       {/* Preset picker */}
       <section className="sacred-card grain">

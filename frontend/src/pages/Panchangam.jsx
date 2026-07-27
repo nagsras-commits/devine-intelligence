@@ -3,6 +3,7 @@ import axios from "axios";
 import { useApp } from "@/context/AppContext";
 import { t } from "@/lib/i18n";
 import { CalendarDays, Sun } from "lucide-react";
+import PageHero from "@/components/PageHero";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -20,13 +21,13 @@ export default function Panchangam() {
 
   return (
     <div className="space-y-8">
-      <header className="flex items-end justify-between gap-4 flex-wrap">
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground">Traditional Almanac</div>
-          <h1 className="text-4xl sm:text-5xl font-semibold text-kumkum dark:text-[hsl(var(--gold))]">{t(lang, "panchangam")}</h1>
-        </div>
-        <CalendarDays className="w-10 h-10 text-saffron" />
-      </header>
+      <PageHero
+        bannerId="panchangam"
+        eyebrow="Traditional Almanac"
+        title={t(lang, "panchangam")}
+        sanskritTitle="पञ्चाङ्गम्"
+        subtitle="Tithi, Nakshatra, Yoga, Karana, Vara — the five limbs of Vedic time."
+      />
 
       {/* Week strip */}
       <div className="flex gap-2 overflow-x-auto pb-2">
