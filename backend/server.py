@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -13,6 +14,10 @@ import math
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+# Ensure static image directory exists
+STATIC_DIR = ROOT_DIR / "static"
+(STATIC_DIR / "deities").mkdir(parents=True, exist_ok=True)
 
 # MongoDB
 mongo_url = os.environ['MONGO_URL']
@@ -270,6 +275,10 @@ async def unmark_ritual(ritual_id: str, device_id: str, date_str: str):
 
 
 app.include_router(api_router)
+
+# Mount static images (deity portraits) — accessible at /api/static/deities/{id}.png
+app.mount("/api/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

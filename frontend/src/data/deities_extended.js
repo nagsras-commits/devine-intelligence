@@ -29,17 +29,34 @@ export const EXTENDED_BACKGROUND_CHANTS = [
   { id: "navagraha", label: "Navagraha Stotram", url: AX.navagraha },
 ];
 
+// All deity portraits are self-hosted at /app/backend/static/deities/*.png
+// Served by FastAPI static mount at /api/static/deities/{id}.png
+const BACKEND = process.env.REACT_APP_BACKEND_URL || "";
+const D = (id) => `${BACKEND}/api/static/deities/${id}.png`;
+
 const IMGX = {
-  venkateswara: "https://upload.wikimedia.org/wikipedia/commons/9/95/Lord_Venkateswara_of_Tirupathi.jpg",
-  narasimha: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Narasimhaavatar.jpg",
-  lalitha: "https://upload.wikimedia.org/wikipedia/commons/1/15/Rajarajeshwari.jpg",
-  kali: "https://upload.wikimedia.org/wikipedia/commons/0/0d/Kali_by_Raja_Ravi_Varma.jpg",
-  parvathi: "https://upload.wikimedia.org/wikipedia/commons/4/44/Ravi_Varma-Shiva_Parvati.jpg",
-  ganga: "https://upload.wikimedia.org/wikipedia/commons/3/3a/Descent_of_Ganga_-_Raja_Ravi_Varma.jpg",
-  bhairava: "https://upload.wikimedia.org/wikipedia/commons/5/5f/Bhairava_Bhutan.jpg",
-  dhanvantari: "https://upload.wikimedia.org/wikipedia/commons/2/2e/Dhanvantari_at_Ayurveda_expo.jpg",
-  varaha: "https://upload.wikimedia.org/wikipedia/commons/9/99/Varaha_avatar_of_Vishnu%2C_rescuing_Bhudevi_from_the_depths_of_the_cosmic_ocean%2C_bronze%2C_Chola_dynasty%2C_c._1000_AD.jpg",
-  annapurna: "https://upload.wikimedia.org/wikipedia/commons/2/24/Annapurna.jpg",
+  venkateswara: D("venkateswara"),
+  narasimha: D("narasimha"),
+  lalitha: D("lalitha"),
+  kali: D("kali"),
+  padmavathi: D("padmavathi"),
+  dattatreya: D("dattatreya"),
+  gayatri: D("gayatri"),
+  kubera: D("kubera"),
+  chamundeshwari: D("chamundeshwari"),
+  mahalakshmi_kolhapur: D("mahalakshmi_kolhapur"),
+  annapurna: D("annapurna"),
+  ganga: D("ganga"),
+  bhairava: D("bhairava"),
+  dhanvantari: D("dhanvantari"),
+  varaha: D("varaha"),
+  varahi: D("varahi"),
+  santoshi: D("santoshi"),
+  navagraha: D("navagraha"),
+  vishwakarma: D("vishwakarma"),
+  parvathi: D("parvathi"),
+  raghavendra: D("raghavendra"),
+  veerabrahmendra: D("veerabrahmendra"),
 };
 
 const dx = (id, names, color, mula, dhyana, meaning, stotras, ashtot, songs, image) => ({
@@ -70,7 +87,7 @@ export const EXTENDED_DEITIES = [
     ["Padmāvatī Aṣṭottara", "Padmāvatī Stotram", "Alarmelmaṅga Stotram", "Padmāvatī Stuti"],
     ["Alarmelmaṅga", "Vakuḷamātā-Putrī", "Ākāśarājakumārī", "Kamalākṣī", "Kāmākṣī", "Padmāsanā", "Ratnamālinī", "Sarvamaṅgaladāyinī"],
     [],
-    undefined
+    IMGX.padmavathi
   ),
   // 3. Narasimha Swamy
   dx("narasimha",
@@ -106,7 +123,7 @@ export const EXTENDED_DEITIES = [
     ["Datta Bāvani", "Śrī Dattātreya Stotram", "Datta Aṣṭottara", "Guru Caritra", "Avadhūta Gītā"],
     ["Datta", "Guru", "Avadhūta", "Digambara", "Trimūrti", "Ātri-putra", "Anasūyā-suta", "Yogīśvara", "Śiva-Viṣṇu-Brahma-Svarūpa"],
     [{ title: "Datta Bavani", url: AX.dattatreya }],
-    undefined
+    IMGX.dattatreya
   ),
   // 6. Lalitha Tripura Sundari
   dx("lalitha",
@@ -142,7 +159,7 @@ export const EXTENDED_DEITIES = [
     ["Vārāhī Anugraha Aṣṭakam", "Vārāhī Kavacham", "Vārāhī Mantra Stotram", "Daṇḍanāthā Stotram"],
     ["Daṇḍanāthā", "Pañcamī", "Vārtālī", "Ghorāsyā", "Vārāhī", "Kirātini", "Krodha-varāhī", "Śatru-nāśinī"],
     [{ title: "Vaarahi Anugraha Ashtakam", url: AX.varahi }],
-    undefined
+    IMGX.varahi
   ),
   // 9. Navagraha (9 planets — as a unified deity page)
   dx("navagraha",
@@ -154,7 +171,7 @@ export const EXTENDED_DEITIES = [
     ["Navagraha Stotram", "Navagraha Kavacham", "Ādityahṛdayam", "Śani Aṣṭakam", "Rāhu Kavacham", "Ketu Kavacham"],
     ["Sūrya (Ravi)", "Candra (Soma)", "Maṅgala (Kuja)", "Budha", "Bṛhaspati (Guru)", "Śukra", "Śani", "Rāhu", "Ketu"],
     [{ title: "Navagraha Stotram", url: AX.navagraha }],
-    undefined
+    IMGX.navagraha
   ),
   // 10. Kubera
   dx("kubera",
@@ -166,7 +183,7 @@ export const EXTENDED_DEITIES = [
     ["Kubera Aṣṭakam", "Kubera Stotram", "Kubera Sahasranāma", "Lakṣmī Kubera Mantra"],
     ["Yakṣa-rāja", "Dhaneśa", "Vaiśravaṇa", "Ratnagarbha", "Nara-vāhana", "Ekapiṅga", "Rājarāja", "Yakṣendra"],
     [{ title: "Kubera Ashtakam", url: AX.kubera }],
-    undefined
+    IMGX.kubera
   ),
   // 11. Gayatri
   dx("gayatri",
@@ -178,7 +195,7 @@ export const EXTENDED_DEITIES = [
     ["Gāyatrī Sahasranāma", "Gāyatrī Kavacham", "Gāyatrī Hṛdayam", "Sāvitrī Aṣṭakam"],
     ["Vedamātā", "Sāvitrī", "Sarasvatī-svarūpiṇī", "Pañcamukhī", "Devī", "Chandas-mātā", "Ṛg-svarūpā", "Trikāla-Sandhyā-Adhīśvarī"],
     [{ title: "Gayatri Mantra (108 Times)", url: AX.gayatri108 }],
-    undefined
+    IMGX.gayatri
   ),
   // 12. Parvathi
   dx("parvathi",
@@ -202,7 +219,7 @@ export const EXTENDED_DEITIES = [
     ["Rāghavendra Stotra", "Śrī Guru Rāghavendra Aṣṭakam", "Rāyara Aṣṭottara", "Maṅgalāṣṭakam"],
     ["Rāyaru", "Mantrālaya-vāsi", "Guru-sārvabhauma", "Sudhīndra-tīrtha-śiṣya", "Prahlāda-avatāra", "Kalpavṛkṣa", "Kāmadhenu", "Mrittika-vṛnda-vāsa"],
     [{ title: "Sri Raghavendra Stotra", url: AX.raghavendra }],
-    undefined
+    IMGX.raghavendra
   ),
   // 14. Annapurna
   dx("annapurna",
@@ -226,7 +243,7 @@ export const EXTENDED_DEITIES = [
     ["Devī Māhātmyam", "Cāmuṇḍā Stotram", "Cāmuṇḍā Aṣṭottara", "Mahiṣāsura Mardinī Stotram"],
     ["Cāmuṇḍā", "Mahiṣāsura-mardinī", "Caṇḍikā", "Bhadrakālī", "Ambā", "Cāmuṇḍeśvarī", "Krodha-rūpiṇī"],
     [],
-    undefined
+    IMGX.chamundeshwari
   ),
   // 16. Mahalakshmi (Kolhapur)
   dx("mahalakshmi_kolhapur",
@@ -238,7 +255,7 @@ export const EXTENDED_DEITIES = [
     ["Mahālakṣmī Aṣṭakam", "Kanakadhārā Stotram", "Śrī Sūktam", "Lakṣmī Sahasranāma", "Mahālakṣmī Kavacham"],
     ["Ambābāī", "Karvīra-nivāsinī", "Mahālakṣmī", "Śrī", "Padmāsanā", "Ratnāṭṭahāsa", "Śaṅkha-cakra-gadā-dhāriṇī"],
     [],
-    undefined
+    IMGX.mahalakshmi_kolhapur
   ),
   // 17. Ganga
   dx("ganga",
@@ -286,6 +303,30 @@ export const EXTENDED_DEITIES = [
     ["Santoṣī Mātā Vratakathā", "Santoṣī Mātā Ārtī", "Santoṣī Mātā Aṣṭakam"],
     ["Santoṣī", "Sukhadā", "Śāntipradā", "Tuṣṭi", "Puṣṭi", "Maṅgalā"],
     [],
-    undefined
+    IMGX.santoshi
+  ),
+  // 21. Vishwakarma (Divine Architect)
+  dx("vishwakarma",
+    { en: "Vishwakarma", te: "విశ్వకర్మ", hi: "विश्वकर्मा", ta: "விசுவகர்மா", sa: "विश्वकर्मा" },
+    "#0369A1",
+    { sa: "ॐ विश्वकर्मणे नमः", en: "Om Viśvakarmaṇe Namaḥ", meaning: { en: "Salutations to Vishwakarma, the divine architect of the universe.", te: "సర్వ శిల్పకర్త విశ్వకర్మకు నమస్కారం.", hi: "सृष्टि के दिव्य शिल्पी विश्वकर्मा को नमन।", ta: "பிரபஞ்ச சிற்பியான விசுவகர்மாவுக்கு நமஸ்காரம்." } },
+    "विश्वकर्मन् नमस्तुभ्यं विश्वात्मन् विश्वसंभव।\nअपमृत्युविनाशाय सर्वकार्यकराय च॥",
+    { en: "Salutations to Vishwakarma, soul of the universe, origin of all — remover of untimely death, accomplisher of every task." },
+    ["Viśvakarma Stotram", "Viśvakarma Aṣṭakam", "Viśvakarma Kavacham", "Viśvakarma Aṣṭottara"],
+    ["Viśvakarmā", "Tvaṣṭā", "Śilpi-nātha", "Devaśilpī", "Vardhaki", "Kalākāra", "Sarva-kāraka", "Yajña-svarūpī", "Pañca-mukha", "Prajāpati-suta"],
+    [],
+    IMGX.vishwakarma
+  ),
+  // 22. Veerabrahmendra Swamy (Andhra saint — Kalajnana)
+  dx("veerabrahmendra",
+    { en: "Veerabrahmendra Swamy", te: "పోతులూరి వీరబ్రహ్మేంద్ర స్వామి", hi: "वीरब्रह्मेन्द्र स्वामी", ta: "வீரப்ரம்ஹேந்திர சுவாமி", sa: "वीरब्रह्मेन्द्रस्वामी" },
+    "#A16207",
+    { sa: "ॐ श्रीवीरब्रह्मेन्द्रस्वामिने नमः", en: "Om Śrī Vīrabrahmendra Svāmine Namaḥ", meaning: { en: "Salutations to Sri Veerabrahmendra Swamy of Kandimallayapalle, prophet of the Kalajnana.", te: "కందిమల్లయ్యపల్లె వాసుడు, కాలజ్ఞాన ప్రవర్తకుడైన శ్రీ వీరబ్రహ్మేంద్ర స్వామికి నమస్కారం.", hi: "कालज्ञान के प्रवर्तक कंडिमल्लयपल्ले वासी वीरब्रह्मेन्द्र स्वामी को नमन।", ta: "காலஞானத்தை உணர்த்திய கண்டிமல்லய்யபல்லெ வாசி வீரப்ரம்ஹேந்திர சுவாமிக்கு நமஸ்காரம்." } },
+    "कालज्ञानप्रदातारं ब्रह्मज्ञानमहोदयम्।\nपोतुलूरिकुले जातं वीरब्रह्मेन्द्रमाश्रये॥",
+    { en: "Bestower of Kalajnana (knowledge of time), rising sun of Brahma-wisdom, born in the Poturi lineage — I take refuge in Veerabrahmendra Swamy." },
+    ["Kālajñānam (Prophecies)", "Śrī Vīrabrahmendra Stotram", "Vīrabrahmendra Aṣṭakam", "Kāndimallayapalle Mahima"],
+    ["Vīrabrahmendra", "Poturi-vaṁśa-jāta", "Kālajñānī", "Brahmajñānī", "Jaganmohana-Rāma", "Siddha-Puruṣa", "Kāṇḍimallayapalle-vāsi", "Govindāmba-priya", "Yogīśvara", "Guru-mūrti"],
+    [],
+    IMGX.veerabrahmendra
   ),
 ];

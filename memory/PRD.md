@@ -58,19 +58,21 @@ Additional user requests:
 - [x] 30-day diya streak (localStorage), Sadhana Certificate (html2canvas export)
 
 ### 2026-02-27 (this session)
-- [x] **Added 20 new deities** (total 32) — Venkateswara, Padmavathi, Narasimha, Varaha,
+- [x] **Added 22 new deities** (total 34) — Venkateswara, Padmavathi, Narasimha, Varaha,
       Dattatreya, Lalitha, Kali, Varahi, Navagraha, Kubera, Gayatri, Parvathi, Raghavendra,
-      Annapurna, Chamundeshwari, Mahalakshmi (Kolhapur), Ganga, Bhairava, Dhanvantari, Santoshi
-- [x] **Extended background chants** — Venkateswara Suprabhatam, Datta Bāvani, Rāghavendra
-      Stotra, Navagraha Stotram (10+ total tracks now)
-- [x] **Japa Counter** (`/japa`) — deity-wise bīja mantra japa counter, 108-round tracking,
-      Web Audio bell chime every 108/27, milestones ladder (108→1008→10K→1L→10L→1Cr→Target),
-      Undo, Reset, cross-deity total, certificate at **1,00,00,116**
-- [x] **Rāma Koṭi / Likhita Japa** (`/rama-koti`) — 5 name presets (Rāma, Om Namaḥ Śivāya,
-      Kṛṣṇa, Hanumān, Sāī Rām), fuzzy matching accepts EN/DEV/TE variants, 108-dot page grid,
-      milestones ladder, chime, certificate at **1,00,00,116**
-- [x] **NamaCertificate** — reusable html2canvas-exported certificate for both features
-- [x] Home page has Sādhanā section with tiles for Japa & Rāma Koṭi
+      Annapurna, Chamundeshwari, Mahalakshmi (Kolhapur), Ganga, Bhairava, Dhanvantari, Santoshi,
+      **Vishwakarma, Veerabrahmendra Swamy**
+- [x] **AI-generated deity portraits** — 22 museum-quality deity images generated using
+      Gemini 3.1 Flash Image (Nano Banana) via EMERGENT_LLM_KEY, self-hosted at
+      `/api/static/deities/{id}.png` (FastAPI static mount). Solves Wikimedia CORS/rate-limit issues.
+- [x] **Japa Counter** (`/japa`) — 1,00,00,116 target with certificate
+- [x] **Rāma Koṭi / Likhita Japa** (`/rama-koti`) — 21 divine name presets, text + finger writing pad
+- [x] **Finger Writing Pad** — canvas-based drawing with touch/stylus/mouse support, guide overlay,
+      pen colors, stroke width, undo, clear, empty-canvas protection
+- [x] **Extended background chants** — Venkateswara Suprabhatam, Datta Bāvani, Rāghavendra Stotra,
+      Navagraha Stotram (11+ tracks)
+- [x] **NamaCertificate** — reusable html2canvas-exported certificate
+- [x] Home page Sādhanā section with Japa & Rāma Koṭi tiles
 
 ## Backlog / Deferred
 ### P0 (next)
