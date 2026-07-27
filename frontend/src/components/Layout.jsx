@@ -3,7 +3,8 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
 import { LANGUAGES, t } from "@/lib/i18n";
 import { BACKGROUND_CHANTS } from "@/data/deities";
-import { Volume2, VolumeX, Home, Sunrise, Sparkles, CalendarDays, Music2, Languages, X } from "lucide-react";
+import { Volume2, VolumeX, Volume1, Home, Sunrise, Sparkles, CalendarDays, Music2, Languages, X } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem,
@@ -17,7 +18,8 @@ const LOGO_URL = "https://customer-assets-eiarnc6j.emergentagent.net/job_divine-
 
 export default function Layout({ children }) {
   const { lang, setLang, muted, isPlaying, toggleMute, chantId, setChantId,
-          currentTrack, nowPlaying, stopTrackAndResumeBackground } = useApp();
+          currentTrack, nowPlaying, stopTrackAndResumeBackground,
+          volume, setVolume, autoplayBlocked } = useApp();
   const [scrolled, setScrolled] = useState(false);
   const loc = useLocation();
 
@@ -159,9 +161,31 @@ export default function Layout({ children }) {
               <OmSymbol className={`text-lg text-saffron ${isPlaying ? "animate-flicker" : "opacity-60"}`} />
               <div data-testid="track-title" className="truncate text-sm font-medium">{currentTrack.title}</div>
             </div>
-            {!isPlaying && (
+            {!isPlaying && autoplayBlocked && (
               <div className="text-[10px] italic text-muted-foreground mt-0.5">{t(lang, "unmute_chant")}</div>
             )}
+          </div>
+
+          {/* Volume slider */}
+          <div className="hidden sm:flex items-center gap-2 w-40 shrink-0" data-testid="volume-control">
+            {volume === 0 ? (
+              <VolumeX className="w-4 h-4 text-muted-foreground" />
+            ) : volume < 0.5 ? (
+              <Volume1 className="w-4 h-4 text-saffron" />
+            ) : (
+              <Volume2 className="w-4 h-4 text-saffron" />
+            )}
+            <Slider
+              data-testid="volume-slider"
+              value={[Math.round(volume * 100)]}
+              onValueChange={(v) => setVolume((v[0] || 0) / 100)}
+              min={0}
+              max={100}
+              step={1}
+              className="w-full"
+              aria-label="Volume"
+            />
+            <span className="text-[10px] tabular-nums text-muted-foreground w-6 text-right">{Math.round(volume * 100)}</span>
           </div>
 
           {nowPlaying ? (

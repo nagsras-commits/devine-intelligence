@@ -8,12 +8,18 @@ const LS_LANG = "dj_lang";
 const LS_MUTE = "dj_muted";
 const LS_CHANT = "dj_chant";
 const LS_DEVICE = "dj_device";
+const LS_VOL = "dj_volume";
 
 export function AppProvider({ children }) {
   const [lang, setLang] = useState(() => localStorage.getItem(LS_LANG) || "en");
-  const [muted, setMuted] = useState(() => localStorage.getItem(LS_MUTE) !== "false");
+  // Default: NOT muted — attempt autoplay. LocalStorage value only wins if explicitly set to "true".
+  const [muted, setMuted] = useState(() => localStorage.getItem(LS_MUTE) === "true");
   const [chantId, setChantId] = useState(() => localStorage.getItem(LS_CHANT) || "om");
-  const [nowPlaying, setNowPlaying] = useState(null); // {title, url} - overrides background chant when set
+  const [volume, setVolumeState] = useState(() => {
+    const v = parseFloat(localStorage.getItem(LS_VOL));
+    return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0.9;
+  });
+  const [nowPlaying, setNowPlaying] = useState(null);
   const [deviceId] = useState(() => {
     let id = localStorage.getItem(LS_DEVICE);
     if (!id) {
@@ -25,10 +31,12 @@ export function AppProvider({ children }) {
 
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
 
   useEffect(() => { localStorage.setItem(LS_LANG, lang); }, [lang]);
   useEffect(() => { localStorage.setItem(LS_MUTE, String(muted)); }, [muted]);
   useEffect(() => { localStorage.setItem(LS_CHANT, chantId); }, [chantId]);
+  useEffect(() => { localStorage.setItem(LS_VOL, String(volume)); }, [volume]);
 
   const currentTrack = useMemo(() => {
     if (nowPlaying) return nowPlaying;
@@ -36,22 +44,27 @@ export function AppProvider({ children }) {
     return { title: c.label, url: c.url, isBackground: true };
   }, [nowPlaying, chantId]);
 
-  // Manage HTMLAudio - single element
+  // Init audio element once
   useEffect(() => {
-    if (!audioRef.current) {
-      const el = new Audio();
-      el.loop = true;
-      el.volume = 0.95;
-      el.preload = "auto";
-      el.crossOrigin = "anonymous";
-      audioRef.current = el;
-      el.addEventListener("play", () => setIsPlaying(true));
-      el.addEventListener("pause", () => setIsPlaying(false));
-      el.addEventListener("ended", () => setIsPlaying(false));
-    }
+    if (audioRef.current) return;
+    const el = new Audio();
+    el.loop = true;
+    el.volume = volume;
+    el.preload = "auto";
+    el.crossOrigin = "anonymous";
+    audioRef.current = el;
+    el.addEventListener("play", () => { setIsPlaying(true); setAutoplayBlocked(false); });
+    el.addEventListener("pause", () => setIsPlaying(false));
+    el.addEventListener("ended", () => setIsPlaying(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update src when track changes
+  // Update volume live
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = volume;
+  }, [volume]);
+
+  // Update src when track changes; auto-play if not muted
   useEffect(() => {
     const el = audioRef.current;
     if (!el) return;
@@ -59,46 +72,61 @@ export function AppProvider({ children }) {
       el.src = currentTrack.url;
     }
     el.loop = !!currentTrack.isBackground;
-  }, [currentTrack]);
+    if (!muted) {
+      el.play().then(() => setAutoplayBlocked(false)).catch(() => setAutoplayBlocked(true));
+    }
+  }, [currentTrack, muted]);
 
-  // Play/pause based on muted state; users need to unmute (first tap) to satisfy autoplay policies
+  // Fallback: on first user interaction anywhere, try to start playback
+  useEffect(() => {
+    if (muted) return;
+    const el = audioRef.current;
+    if (!el) return;
+    const kick = () => {
+      if (el.paused && !muted) {
+        el.play().then(() => setAutoplayBlocked(false)).catch(() => {});
+      }
+    };
+    const opts = { once: true, capture: true };
+    window.addEventListener("pointerdown", kick, opts);
+    window.addEventListener("keydown", kick, opts);
+    window.addEventListener("touchstart", kick, opts);
+    return () => {
+      window.removeEventListener("pointerdown", kick, opts);
+      window.removeEventListener("keydown", kick, opts);
+      window.removeEventListener("touchstart", kick, opts);
+    };
+  }, [muted, autoplayBlocked]);
+
   const play = async () => {
     const el = audioRef.current;
     if (!el) return;
-    try {
-      await el.play();
-      setMuted(false);
-    } catch {
-      // autoplay blocked
-    }
+    try { await el.play(); setMuted(false); } catch {}
   };
-
-  const pause = () => {
-    const el = audioRef.current;
-    if (!el) return;
-    el.pause();
-  };
+  const pause = () => { audioRef.current?.pause(); };
 
   const toggleMute = async () => {
-    if (isPlaying) {
-      pause();
-      setMuted(true);
-    } else {
-      await play();
+    if (isPlaying) { pause(); setMuted(true); }
+    else { setMuted(false); await play(); }
+  };
+
+  const setVolume = (v) => {
+    const clamped = Math.min(1, Math.max(0, v));
+    setVolumeState(clamped);
+    // If user is dragging volume, ensure we're playing (unmute)
+    if (clamped > 0 && muted) {
+      setMuted(false);
+      audioRef.current?.play().catch(() => {});
     }
   };
 
   const playTrack = async (track) => {
-    // track: {title, url}
     setNowPlaying({ ...track, isBackground: false });
     setTimeout(async () => {
       const el = audioRef.current;
       if (!el) return;
       el.currentTime = 0;
-      try {
-        await el.play();
-        setMuted(false);
-      } catch {}
+      try { await el.play(); setMuted(false); } catch {}
     }, 50);
   };
 
@@ -107,16 +135,15 @@ export function AppProvider({ children }) {
     setTimeout(async () => {
       const el = audioRef.current;
       if (!el) return;
-      try {
-        await el.play();
-      } catch {}
+      try { await el.play(); } catch {}
     }, 50);
   };
 
   const value = {
     lang, setLang,
-    muted, isPlaying, toggleMute,
+    muted, isPlaying, toggleMute, autoplayBlocked,
     chantId, setChantId,
+    volume, setVolume,
     currentTrack, nowPlaying,
     playTrack, stopTrackAndResumeBackground, pause, play,
     deviceId,
