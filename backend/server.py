@@ -33,6 +33,49 @@ TITHIS = [
     "Ekadashi", "Dwadashi", "Trayodashi", "Chaturdashi", "Amavasya",
 ]
 
+TITHIS_TE = [
+    "ప్రథమ", "ద్వితీయ", "తృతీయ", "చతుర్థి", "పంచమి",
+    "షష్ఠి", "సప్తమి", "అష్టమి", "నవమి", "దశమి",
+    "ఏకాదశి", "ద్వాదశి", "త్రయోదశి", "చతుర్దశి", "పూర్ణిమ",
+    "ప్రథమ", "ద్వితీయ", "తృతీయ", "చతుర్థి", "పంచమి",
+    "షష్ఠి", "సప్తమి", "అష్టమి", "నవమి", "దశమి",
+    "ఏకాదశి", "ద్వాదశి", "త్రయోదశి", "చతుర్దశి", "అమావాస్య",
+]
+
+SAMVATSARAS = [
+    "Prabhava", "Vibhava", "Shukla", "Pramoduta", "Prajotpatti", "Angirasa",
+    "Srimukha", "Bhava", "Yuva", "Dhata", "Ishwara", "Bahudhanya",
+    "Pramadi", "Vikrama", "Vrisha", "Chitrabhanu", "Svabhanu", "Tarana",
+    "Parthiva", "Vyaya", "Sarvajit", "Sarvadhari", "Virodhi", "Vikruti",
+    "Khara", "Nandana", "Vijaya", "Jaya", "Manmatha", "Durmukhi",
+    "Hevilambi", "Vilambi", "Vikari", "Sharvari", "Plava", "Shubhakruti",
+    "Shobhakruti", "Krodhi", "Vishvavasu", "Parabhava", "Plavanga", "Kilaka",
+    "Saumya", "Sadharana", "Virodhikruti", "Paridhavi", "Pramadicha", "Ananda",
+    "Rakshasa", "Nala", "Pingala", "Kalayukti", "Siddharti", "Raudri",
+    "Durmati", "Dundubhi", "Rudhirodgari", "Raktakshi", "Krodhana", "Akshaya",
+]
+
+SAMVATSARAS_TE = [
+    "ప్రభవ", "విభవ", "శుక్ల", "ప్రమోదూత", "ప్రజోత్పత్తి", "అంగీరస",
+    "శ్రీముఖ", "భావ", "యువ", "ధాత", "ఈశ్వర", "బహుధాన్య",
+    "ప్రమాది", "విక్రమ", "వృష", "చిత్రభాను", "స్వభాను", "తారణ",
+    "పార్థివ", "వ్యయ", "సర్వజిత్", "సర్వధారి", "విరోధి", "వికృతి",
+    "ఖర", "నందన", "విజయ", "జయ", "మన్మథ", "దుర్ముఖి",
+    "హేవిళంబి", "విళంబి", "వికారి", "శార్వరి", "ప్లవ", "శుభకృత్",
+    "శోభకృత్", "క్రోధి", "విశ్వావసు", "పరాభవ", "ప్లవంగ", "కీలక",
+    "సౌమ్య", "సాధారణ", "విరోధికృత్", "పరిధావి", "ప్రమాదీచ", "ఆనంద",
+    "రాక్షస", "నల", "పింగళ", "కాళయుక్తి", "సిద్ధార్థి", "రౌద్రి",
+    "దుర్మతి", "దుందుభి", "రుధిరోద్గారి", "రక్తాక్షి", "క్రోధన", "అక్షయ",
+]
+
+MASAS = ["Chaitra", "Vaisakha", "Jyeshtha", "Ashadha", "Shravana", "Bhadrapada",
+         "Ashvina", "Kartika", "Margashirsha", "Pausha", "Magha", "Phalguna"]
+MASAS_TE = ["చైత్ర", "వైశాఖ", "జ్యేష్ఠ", "ఆషాఢ", "శ్రావణ", "భాద్రపద",
+            "ఆశ్వయుజ", "కార్తీక", "మార్గశిర", "పుష్య", "మాఘ", "ఫాల్గుణ"]
+
+RUTHUS = ["Vasanta", "Grishma", "Varsha", "Sharat", "Hemanta", "Shishira"]
+RUTHUS_TE = ["వసంత", "గ్రీష్మ", "వర్ష", "శరత్", "హేమంత", "శిశిర"]
+
 NAKSHATRAS = [
     "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra",
     "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni",
@@ -76,13 +119,35 @@ def compute_panchangam(d: date) -> Dict[str, Any]:
     vara_sun_idx = (vara_idx + 1) % 7
 
     paksha = "Shukla Paksha" if tithi_idx < 15 else "Krishna Paksha"
+    paksha_te = "శుక్ల పక్ష" if tithi_idx < 15 else "కృష్ణ పక్ష"
+
+    # Samvatsara — cycle changes at Ugadi (~ mid-March). Krodhi = index 37 (0-based) for 2024 Ugadi year.
+    ugadi_year = d.year if d.month >= 4 or (d.month == 3 and d.day >= 20) else d.year - 1
+    samvatsara_idx = (ugadi_year - 2024 + 37) % 60
+
+    # Ayana — Uttarayana from Jan 14 to Jul 15, else Dakshinayana
+    doy = d.timetuple().tm_yday
+    uttar_start = date(d.year, 1, 14).timetuple().tm_yday
+    daksh_start = date(d.year, 7, 16).timetuple().tm_yday
+    if uttar_start <= doy < daksh_start:
+        ayana, ayana_te = "Uttarayana", "ఉత్తరాయణ"
+    else:
+        ayana, ayana_te = "Dakshinayana", "దక్షిణాయణ"
+
+    # Ruthu — by Gregorian month (approximate)
+    m = d.month
+    ruthu_map = {(3, 4): 0, (5, 6): 1, (7, 8): 2, (9, 10): 3, (11, 12): 4, (1, 2): 5}
+    ruthu_idx = next((v for k, v in ruthu_map.items() if m in k), 0)
+
+    # Masa — by Gregorian month starting Chaitra ~ March-April
+    masa_idx = (m - 3) % 12
 
     # Approximate sunrise/sunset - static for demo (Bharat ~ IST)
     month = d.month
-    sunrise_min = 360 + (month - 6) * 6  # varies through year
+    sunrise_min = 360 + (month - 6) * 6
     sunset_min = 1080 - (month - 6) * 6
-    def m2t(m):
-        h, mm = divmod(m, 60)
+    def m2t(mm):
+        h, mm = divmod(mm, 60)
         return f"{h:02d}:{mm:02d}"
 
     return {
@@ -90,7 +155,9 @@ def compute_panchangam(d: date) -> Dict[str, Any]:
         "vara": VARAS[vara_sun_idx],
         "vara_sanskrit": VARAS_SANSKRIT[vara_sun_idx],
         "paksha": paksha,
+        "paksha_te": paksha_te,
         "tithi": TITHIS[tithi_idx],
+        "tithi_te": TITHIS_TE[tithi_idx],
         "tithi_number": (tithi_idx % 15) + 1,
         "nakshatra": NAKSHATRAS[nak_idx],
         "yoga": YOGAS[yoga_idx],
@@ -98,6 +165,14 @@ def compute_panchangam(d: date) -> Dict[str, Any]:
         "sunrise": m2t(sunrise_min),
         "sunset": m2t(sunset_min),
         "deity_of_day": PAKSHA_LORDS[VARAS[vara_sun_idx]],
+        "samvatsara": SAMVATSARAS[samvatsara_idx],
+        "samvatsara_te": SAMVATSARAS_TE[samvatsara_idx],
+        "ayana": ayana,
+        "ayana_te": ayana_te,
+        "ruthu": RUTHUS[ruthu_idx],
+        "ruthu_te": RUTHUS_TE[ruthu_idx],
+        "masa": MASAS[masa_idx],
+        "masa_te": MASAS_TE[masa_idx],
         "auspicious_note": "Recite the day's deity mantra during Brahma Muhurta (~90 min before sunrise) for maximum benefit.",
     }
 

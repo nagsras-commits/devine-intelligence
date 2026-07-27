@@ -1,21 +1,55 @@
-import React, { useState } from "react";
-import { NITYA_POOJA, ISHTA_STOTRAM_MAP } from "@/data/nityapooja";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { AUTHENTIC_POOJA, ISHTA_STOTRAM_MAP } from "@/data/nityapooja";
 import { DEITIES } from "@/data/deities";
 import { useApp } from "@/context/AppContext";
 import { pickLang, t } from "@/lib/i18n";
-import SlokaCard from "@/components/SlokaCard";
 import DeityImage from "@/components/DeityImage";
 import * as Lucide from "lucide-react";
-import { ChevronDown, BookOpen, ScrollText, Sparkles, Package } from "lucide-react";
+import { ChevronDown, BookOpen, Sparkles, Package, ScrollText } from "lucide-react";
 
-function Step({ step, index, open, onToggle, lang }) {
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+// Substitute {{samvatsara}} etc placeholders with today's panchangam values.
+function fillSankalpa(text, panch, lang) {
+  if (!panch) return text;
+  const map = lang === "te"
+    ? {
+        "{{samvatsara}}": panch.samvatsara_te || panch.samvatsara,
+        "{{ayana}}": panch.ayana_te || panch.ayana,
+        "{{ruthu}}": panch.ruthu_te || panch.ruthu,
+        "{{masa}}": panch.masa_te || panch.masa,
+        "{{paksha}}": panch.paksha_te || panch.paksha,
+        "{{tithi}}": panch.tithi_te || panch.tithi,
+        "{{vara}}": panch.vara,
+      }
+    : {
+        "{{samvatsara}}": panch.samvatsara,
+        "{{ayana}}": panch.ayana,
+        "{{ruthu}}": panch.ruthu,
+        "{{masa}}": panch.masa,
+        "{{paksha}}": panch.paksha,
+        "{{tithi}}": panch.tithi,
+        "{{vara}}": panch.vara,
+      };
+  let out = text;
+  for (const [k, v] of Object.entries(map)) out = out.split(k).join(v);
+  return out;
+}
+
+function StepCard({ step, open, onToggle, lang, panch }) {
   const Icon = (step.icon && Lucide[step.icon]) || Lucide.Circle;
+  const isTelugu = lang === "te";
+  const isSanskritScript = isTelugu || lang === "hi";
+  const translitClass = lang === "te" ? "font-telugu" : lang === "ta" ? "font-tamil" : "font-devanagari";
+
+  const sankalpaTe = step.sankalpam_te ? fillSankalpa(step.sankalpam_te, panch, "te") : null;
+  const sankalpaEn = step.sankalpam_en ? fillSankalpa(step.sankalpam_en, panch, "en") : null;
+
+  const instructionsText = step.instructions?.[lang] || step.instructions?.en;
+
   return (
     <div className="relative" data-testid={`pooja-step-${step.id}`}>
-      <div className="absolute -left-6 sm:-left-8 top-4 w-4 h-4 rounded-full grid place-items-center gold-border bg-background">
-        <span className="text-[9px] font-bold text-kumkum">{step.num || index}</span>
-      </div>
-
       <button
         onClick={onToggle}
         data-testid={`pooja-toggle-${step.id}`}
@@ -30,15 +64,83 @@ function Step({ step, index, open, onToggle, lang }) {
               {pickLang(step.title, lang)}
             </h3>
           </div>
-          <ChevronDown
-            className={`w-5 h-5 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
-          />
+          <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
         </div>
       </button>
 
       {open && (
-        <div className="mt-3">
-          <SlokaCard sloka={step.sanskrit} translit={step.translit} meaning={step.meaning} />
+        <div className="mt-3 sacred-card grain animate-rise space-y-4">
+          {/* Instructions */}
+          {instructionsText && (
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-1">
+                {t(lang, "how_to")}
+              </div>
+              <p className={`text-sm sm:text-base leading-relaxed text-foreground/85 ${translitClass}`}>
+                {instructionsText}
+              </p>
+            </div>
+          )}
+
+          {/* Sanskrit */}
+          {step.sanskrit && (
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-1">
+                {t(lang, "sanskrit")}
+              </div>
+              <pre className="font-devanagari text-lg leading-relaxed whitespace-pre-wrap text-foreground/95">
+                {step.sanskrit}
+              </pre>
+            </div>
+          )}
+
+          {/* Sankalpam (dynamic) */}
+          {sankalpaTe && (
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-1">
+                {t(lang, "sankalpam_dynamic")}
+              </div>
+              <pre className={`font-telugu text-base leading-relaxed whitespace-pre-wrap text-foreground/90 rounded-xl p-3 bg-[hsl(var(--gold)/0.06)] gold-border`}>
+                {sankalpaTe}
+              </pre>
+              {lang !== "te" && sankalpaEn && (
+                <pre className="mt-2 text-sm leading-relaxed whitespace-pre-wrap italic text-foreground/75">
+                  {sankalpaEn}
+                </pre>
+              )}
+            </div>
+          )}
+
+          {/* Transliteration (per language) */}
+          {step.translit?.[lang] && (
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-1">
+                {t(lang, "transliteration")}
+              </div>
+              <pre className={`text-base leading-relaxed whitespace-pre-wrap italic text-foreground/85 ${translitClass}`}>
+                {step.translit[lang]}
+              </pre>
+            </div>
+          )}
+
+          {/* If current language isn't Telugu, also show English translit as a helper */}
+          {step.translit?.en && lang !== "en" && lang !== "te" && (
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-1">IAST</div>
+              <pre className="text-sm leading-relaxed whitespace-pre-wrap italic text-foreground/75">
+                {step.translit.en}
+              </pre>
+            </div>
+          )}
+
+          {/* Addendum note */}
+          {step.addendum && (
+            <div className="pt-3 gold-hairline">
+              <p className={`text-sm text-foreground/80 italic ${translitClass}`}>
+                {step.addendum[lang] || step.addendum.en}
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -47,8 +149,13 @@ function Step({ step, index, open, onToggle, lang }) {
 
 export default function NityaPooja() {
   const { lang } = useApp();
-  const [openIds, setOpenIds] = useState(new Set(["achamana"]));
+  const [openIds, setOpenIds] = useState(new Set([AUTHENTIC_POOJA.steps[0].id]));
   const [ishtaId, setIshtaId] = useState("ganesha");
+  const [panch, setPanch] = useState(null);
+
+  useEffect(() => {
+    axios.get(`${API}/panchangam`).then((r) => setPanch(r.data)).catch(() => {});
+  }, []);
 
   const toggle = (id) =>
     setOpenIds((prev) => {
@@ -56,17 +163,13 @@ export default function NityaPooja() {
       n.has(id) ? n.delete(id) : n.add(id);
       return n;
     });
-
-  const expandAll = () =>
-    setOpenIds(new Set([
-      ...NITYA_POOJA.preliminaries.map((p) => p.id),
-      ...NITYA_POOJA.upacharas.map((u) => u.id),
-      NITYA_POOJA.conclusion.id,
-    ]));
+  const expandAll = () => setOpenIds(new Set(AUTHENTIC_POOJA.steps.map((s) => s.id)));
   const collapseAll = () => setOpenIds(new Set());
 
   const ishtaDeity = DEITIES.find((d) => d.id === ishtaId) || DEITIES[0];
-  const ishtaStotra = ISHTA_STOTRAM_MAP[ishtaId];
+  const ishtaStotra = ISHTA_STOTRAM_MAP[ishtaId] || ISHTA_STOTRAM_MAP.ganesha;
+
+  const introText = lang === "te" ? AUTHENTIC_POOJA.intro_te : AUTHENTIC_POOJA.intro_en;
 
   return (
     <div className="space-y-10">
@@ -75,23 +178,29 @@ export default function NityaPooja() {
         <h1 className="text-4xl sm:text-5xl font-semibold text-kumkum dark:text-[hsl(var(--gold))]">
           {t(lang, "nitya_pooja")}
         </h1>
-        <p className="mt-3 text-foreground/80 max-w-3xl leading-relaxed">
-          {pickLang(NITYA_POOJA.intro, lang)}
+        <p className={`mt-3 text-foreground/80 max-w-3xl leading-relaxed ${lang === "te" ? "font-telugu" : ""}`}>
+          {introText}
         </p>
+
+        {panch && (
+          <div className="mt-4 rounded-xl p-3 bg-[hsl(var(--gold)/0.08)] gold-border inline-flex flex-wrap gap-x-4 gap-y-1 text-xs">
+            <span className="text-muted-foreground">{t(lang, "today_panch")}:</span>
+            <span><b>{lang === "te" ? panch.samvatsara_te : panch.samvatsara}</b> {t(lang, "samvatsara_short")}</span>
+            <span>{lang === "te" ? panch.ayana_te : panch.ayana}</span>
+            <span>{lang === "te" ? panch.ruthu_te : panch.ruthu} ṛtu</span>
+            <span>{lang === "te" ? panch.masa_te : panch.masa} māsa</span>
+            <span>{lang === "te" ? panch.paksha_te : panch.paksha}</span>
+            <span>{lang === "te" ? panch.tithi_te : panch.tithi}</span>
+            <span>{panch.vara}</span>
+          </div>
+        )}
+
         <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            onClick={expandAll}
-            data-testid="expand-all-btn"
-            className="text-xs rounded-full px-3 py-1.5 gold-border hover:bg-[hsl(var(--gold)/0.1)]"
-          >
-            Expand all
+          <button onClick={expandAll} data-testid="expand-all-btn" className="text-xs rounded-full px-3 py-1.5 gold-border hover:bg-[hsl(var(--gold)/0.1)]">
+            {t(lang, "expand_all")}
           </button>
-          <button
-            onClick={collapseAll}
-            data-testid="collapse-all-btn"
-            className="text-xs rounded-full px-3 py-1.5 gold-border hover:bg-[hsl(var(--gold)/0.1)]"
-          >
-            Collapse all
+          <button onClick={collapseAll} data-testid="collapse-all-btn" className="text-xs rounded-full px-3 py-1.5 gold-border hover:bg-[hsl(var(--gold)/0.1)]">
+            {t(lang, "collapse_all")}
           </button>
         </div>
       </header>
@@ -104,9 +213,7 @@ export default function NityaPooja() {
             {t(lang, "ishta_devata")}
           </h2>
         </div>
-        <p className="text-sm text-foreground/70 mb-4">
-          {t(lang, "ishta_help")}
-        </p>
+        <p className="text-sm text-foreground/70 mb-4">{t(lang, "ishta_help")}</p>
 
         <div className="flex flex-wrap gap-2 mb-6">
           {DEITIES.filter((d) => ISHTA_STOTRAM_MAP[d.id]).map((d) => (
@@ -168,66 +275,28 @@ export default function NityaPooja() {
         </div>
       </section>
 
-      {/* Materials */}
-      <section className="sacred-card grain">
-        <div className="flex items-center gap-2 mb-3">
-          <Package className="w-5 h-5 text-saffron" />
+      {/* Steps timeline */}
+      <div className="space-y-5">
+        <div className="flex items-center gap-2">
+          <ScrollText className="w-5 h-5 text-saffron" />
           <h2 className="text-2xl font-semibold text-kumkum dark:text-[hsl(var(--gold))]">
-            {pickLang(NITYA_POOJA.materials.title, lang)}
+            {t(lang, "step_by_step")}
           </h2>
         </div>
-        <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
-          {NITYA_POOJA.materials.items[lang].map((m, i) => (
-            <li key={i} className="flex items-start gap-2 text-sm text-foreground/85" data-testid={`material-${i}`}>
-              <span className="w-1.5 h-1.5 mt-2 rounded-full bg-saffron shrink-0" />
-              <span>{m}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
 
-      {/* Timeline */}
-      <div className="relative pl-6 sm:pl-8">
-        <div className="absolute left-2 sm:left-3 top-2 bottom-2 w-px bg-[hsl(var(--gold)/0.4)]" aria-hidden />
-
-        {/* Preliminaries */}
-        <div className="mb-4">
-          <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground mb-3">
-            {t(lang, "preliminaries")}
-          </div>
-        </div>
-        <div className="space-y-5">
-          {NITYA_POOJA.preliminaries.map((p, i) => (
-            <Step key={p.id} step={p} index={i + 1} open={openIds.has(p.id)} onToggle={() => toggle(p.id)} lang={lang} />
-          ))}
-        </div>
-
-        {/* 16 Upacharas */}
-        <div className="mt-10 mb-4">
-          <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground mb-3">
-            {t(lang, "shodashopachara")}
-          </div>
-        </div>
-        <div className="space-y-5">
-          {NITYA_POOJA.upacharas.map((u, i) => (
-            <Step key={u.id} step={u} index={u.num} open={openIds.has(u.id)} onToggle={() => toggle(u.id)} lang={lang} />
-          ))}
-        </div>
-
-        {/* Conclusion */}
-        <div className="mt-10 mb-4">
-          <div className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground mb-3">
-            {t(lang, "conclusion")}
-          </div>
-        </div>
-        <div className="space-y-5">
-          <Step
-            step={NITYA_POOJA.conclusion}
-            index="✓"
-            open={openIds.has(NITYA_POOJA.conclusion.id)}
-            onToggle={() => toggle(NITYA_POOJA.conclusion.id)}
+        {AUTHENTIC_POOJA.steps.map((s, i) => (
+          <StepCard
+            key={s.id}
+            step={s}
+            open={openIds.has(s.id)}
+            onToggle={() => toggle(s.id)}
             lang={lang}
+            panch={panch}
           />
+        ))}
+
+        <div className="mt-6 text-center text-2xl font-display text-kumkum dark:text-[hsl(var(--gold))]">
+          — శుభం • Śubham —
         </div>
       </div>
     </div>
