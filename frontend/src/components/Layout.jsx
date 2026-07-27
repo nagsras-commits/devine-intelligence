@@ -3,7 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
 import { LANGUAGES, t } from "@/lib/i18n";
 import { BACKGROUND_CHANTS } from "@/data/deities";
-import { Volume2, VolumeX, Volume1, Home, Sunrise, Sparkles, CalendarDays, Music2, Languages, X } from "lucide-react";
+import { Volume2, VolumeX, Volume1, Home, Sunrise, Sparkles, CalendarDays, Music2, Languages, X, Flame } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
@@ -32,6 +32,7 @@ export default function Layout({ children }) {
   const nav = [
     { to: "/", label: t(lang, "home"), icon: Home, key: "home" },
     { to: "/dinacharya", label: t(lang, "dinacharya"), icon: Sunrise, key: "dinacharya" },
+    { to: "/pooja", label: t(lang, "nitya_pooja"), icon: Flame, key: "pooja" },
     { to: "/deities", label: t(lang, "deities"), icon: Sparkles, key: "deities" },
     { to: "/panchangam", label: t(lang, "panchangam"), icon: CalendarDays, key: "panchangam" },
     { to: "/festivals", label: t(lang, "festivals"), icon: Music2, key: "festivals" },

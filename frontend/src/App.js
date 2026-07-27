@@ -9,6 +9,7 @@ import Deities from "@/pages/Deities";
 import DeityDetail from "@/pages/DeityDetail";
 import Panchangam from "@/pages/Panchangam";
 import Festivals from "@/pages/Festivals";
+import NityaPooja from "@/pages/NityaPooja";
 import { Toaster } from "@/components/ui/sonner";
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
               <Route path="/deities/:id" element={<DeityDetail />} />
               <Route path="/panchangam" element={<Panchangam />} />
               <Route path="/festivals" element={<Festivals />} />
+              <Route path="/pooja" element={<NityaPooja />} />
             </Routes>
           </Layout>
         </BrowserRouter>
