@@ -19,7 +19,7 @@ const LOGO_URL = "https://customer-assets-eiarnc6j.emergentagent.net/job_divine-
 export default function Layout({ children }) {
   const { lang, setLang, muted, isPlaying, toggleMute, chantId, setChantId,
           currentTrack, nowPlaying, stopTrackAndResumeBackground,
-          volume, setVolume, autoplayBlocked } = useApp();
+          volume, setVolume, volumeMax, autoplayBlocked } = useApp();
   const [scrolled, setScrolled] = useState(false);
   const loc = useLocation();
 
@@ -166,26 +166,28 @@ export default function Layout({ children }) {
             )}
           </div>
 
-          {/* Volume slider */}
-          <div className="hidden sm:flex items-center gap-2 w-40 shrink-0" data-testid="volume-control">
+          {/* Volume slider — visible on all screen sizes */}
+          <div className="flex items-center gap-1.5 sm:gap-2 w-28 sm:w-44 shrink-0" data-testid="volume-control">
             {volume === 0 ? (
-              <VolumeX className="w-4 h-4 text-muted-foreground" />
-            ) : volume < 0.5 ? (
-              <Volume1 className="w-4 h-4 text-saffron" />
+              <VolumeX className="w-4 h-4 text-muted-foreground shrink-0" />
+            ) : volume < 0.7 ? (
+              <Volume1 className="w-4 h-4 text-saffron shrink-0" />
             ) : (
-              <Volume2 className="w-4 h-4 text-saffron" />
+              <Volume2 className="w-4 h-4 text-saffron shrink-0" />
             )}
             <Slider
               data-testid="volume-slider"
               value={[Math.round(volume * 100)]}
               onValueChange={(v) => setVolume((v[0] || 0) / 100)}
               min={0}
-              max={100}
-              step={1}
+              max={Math.round(volumeMax * 100)}
+              step={5}
               className="w-full"
               aria-label="Volume"
             />
-            <span className="text-[10px] tabular-nums text-muted-foreground w-6 text-right">{Math.round(volume * 100)}</span>
+            <span className="text-[10px] tabular-nums text-muted-foreground w-7 text-right shrink-0">
+              {Math.round(volume * 100)}%
+            </span>
           </div>
 
           {nowPlaying ? (

@@ -29,23 +29,23 @@ const IMG = {
     "https://upload.wikimedia.org/wikipedia/commons/7/7f/Idol_of_Lord_Ayyappa_in_a_Hall_at_Sabarimala.jpg",
 };
 
-// Generic royalty-free devotional audio (Archive.org public domain)
+// Generic royalty-free devotional audio (Archive.org public domain — verified 200 OK)
 const A = {
-  om: "https://archive.org/download/OmChanting108Times/Om%20Chanting%20108%20Times.mp3",
-  ganesha: "https://archive.org/download/GanapatiAtharvashirsha_201802/Ganapati%20Atharvashirsha.mp3",
-  gayatri: "https://archive.org/download/GayatriMantra108Times/Gayatri%20Mantra%20108%20Times.mp3",
-  mahamrityunjaya:
-    "https://archive.org/download/mahamrityunjaya-mantra-108-times/Mahamrityunjaya%20Mantra%20108%20Times.mp3",
-  hanuman:
-    "https://archive.org/download/HanumanChalisa_201802/Hanuman%20Chalisa.mp3",
-  vishnu: "https://archive.org/download/VishnuSahasranamamMSSubbulakshmi/Vishnu%20Sahasranamam.mp3",
-  lalita: "https://archive.org/download/LalithaSahasranamam/Lalitha%20Sahasranamam.mp3",
+  om: "https://archive.org/download/OMChanting_201411/OM%20Chanting.mp3",
+  om_shivaya: "https://archive.org/download/mantra-om-for-meditation-with-bell-sound/AUM%20Om%20Namah%20Shivaya%20Mantra%20Chants%20432%20Hz.mp3",
+  ganesha: "https://archive.org/download/Ganapati_Atharvashirsha/ShriGaneshAtharvashirsha1.mp3",
+  gayatri: "https://archive.org/download/tibetan-buddhist-monks-chanting-of-gayatri-mantra-108-times-meditacion/Tibetan%20Buddhist%20Monks%20Chanting%20Of%20Gayatri%20Mantra%20(108%20Times)%20meditaci%C3%B3n.mp3",
+  mahamrityunjaya: "https://archive.org/download/mahamrityunjaya-mantra-108-chantings_202107/Mahamrityunjaya%20Mantra%20108%20Chantings.mp3",
+  hanuman: "https://archive.org/download/HanumanChalisa_20160720/hanuman%20chalisa.mp3",
+  vishnu: "https://archive.org/download/VishnuSahasranamam1/achyutamkeshavamm.mp3",
+  lalita: "https://archive.org/download/lalitha-sahasranam-pri/Lalitha%20Sahasranam%20pri.mp3",
 };
 
 export const BACKGROUND_CHANTS = [
-  { id: "om", label: "Om Chanting (108 times)", url: A.om },
-  { id: "gayatri", label: "Gāyatrī Mantra", url: A.gayatri },
-  { id: "mahamrityunjaya", label: "Mahā Mṛtyuñjaya Mantra", url: A.mahamrityunjaya },
+  { id: "om", label: "Om Chanting", url: A.om },
+  { id: "om_shivaya", label: "Om Namaḥ Śivāya (432 Hz)", url: A.om_shivaya },
+  { id: "gayatri", label: "Gāyatrī Mantra (108×)", url: A.gayatri },
+  { id: "mahamrityunjaya", label: "Mahā Mṛtyuñjaya Mantra (108×)", url: A.mahamrityunjaya },
   { id: "hanuman", label: "Hanumān Chālīsā", url: A.hanuman },
   { id: "vishnu", label: "Viṣṇu Sahasranāmam", url: A.vishnu },
   { id: "lalita", label: "Lalitā Sahasranāmam", url: A.lalita },

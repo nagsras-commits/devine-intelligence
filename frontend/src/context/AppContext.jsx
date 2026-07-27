@@ -12,20 +12,16 @@ const LS_VOL = "dj_volume";
 
 export function AppProvider({ children }) {
   const [lang, setLang] = useState(() => localStorage.getItem(LS_LANG) || "en");
-  // Default: NOT muted — attempt autoplay. LocalStorage value only wins if explicitly set to "true".
   const [muted, setMuted] = useState(() => localStorage.getItem(LS_MUTE) === "true");
   const [chantId, setChantId] = useState(() => localStorage.getItem(LS_CHANT) || "om");
   const [volume, setVolumeState] = useState(() => {
     const v = parseFloat(localStorage.getItem(LS_VOL));
-    return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0.9;
+    return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 1.0;
   });
   const [nowPlaying, setNowPlaying] = useState(null);
   const [deviceId] = useState(() => {
     let id = localStorage.getItem(LS_DEVICE);
-    if (!id) {
-      id = crypto.randomUUID();
-      localStorage.setItem(LS_DEVICE, id);
-    }
+    if (!id) { id = crypto.randomUUID(); localStorage.setItem(LS_DEVICE, id); }
     return id;
   });
 
@@ -40,51 +36,48 @@ export function AppProvider({ children }) {
 
   const currentTrack = useMemo(() => {
     if (nowPlaying) return nowPlaying;
-    const c = BACKGROUND_CHANTS.find(x => x.id === chantId) || BACKGROUND_CHANTS[0];
+    const c = BACKGROUND_CHANTS.find((x) => x.id === chantId) || BACKGROUND_CHANTS[0];
     return { title: c.label, url: c.url, isBackground: true };
   }, [nowPlaying, chantId]);
 
-  // Init audio element once
+  // Init audio element once. NOTE: NO crossOrigin, NO Web Audio graph — cross-origin
+  // archive.org audio would be silenced otherwise (CORS zero-output rule).
   useEffect(() => {
     if (audioRef.current) return;
     const el = new Audio();
     el.loop = true;
-    el.volume = volume;
     el.preload = "auto";
-    el.crossOrigin = "anonymous";
+    el.volume = volume;
     audioRef.current = el;
     el.addEventListener("play", () => { setIsPlaying(true); setAutoplayBlocked(false); });
     el.addEventListener("pause", () => setIsPlaying(false));
     el.addEventListener("ended", () => setIsPlaying(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, []);
 
-  // Update volume live
+  // Apply volume
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = volume;
   }, [volume]);
 
-  // Update src when track changes; auto-play if not muted
+  // Load track and (try to) play
   useEffect(() => {
     const el = audioRef.current;
     if (!el) return;
-    if (el.src !== currentTrack.url) {
-      el.src = currentTrack.url;
-    }
+    if (el.src !== currentTrack.url) el.src = currentTrack.url;
     el.loop = !!currentTrack.isBackground;
     if (!muted) {
       el.play().then(() => setAutoplayBlocked(false)).catch(() => setAutoplayBlocked(true));
     }
   }, [currentTrack, muted]);
 
-  // Fallback: on first user interaction anywhere, try to start playback
+  // First user gesture retry (satisfies browser autoplay policies)
   useEffect(() => {
     if (muted) return;
-    const el = audioRef.current;
-    if (!el) return;
-    const kick = () => {
-      if (el.paused && !muted) {
-        el.play().then(() => setAutoplayBlocked(false)).catch(() => {});
+    const kick = async () => {
+      const el = audioRef.current;
+      if (el && el.paused && !muted) {
+        try { await el.play(); setAutoplayBlocked(false); } catch {}
       }
     };
     const opts = { once: true, capture: true };
@@ -99,8 +92,7 @@ export function AppProvider({ children }) {
   }, [muted, autoplayBlocked]);
 
   const play = async () => {
-    const el = audioRef.current;
-    if (!el) return;
+    const el = audioRef.current; if (!el) return;
     try { await el.play(); setMuted(false); } catch {}
   };
   const pause = () => { audioRef.current?.pause(); };
@@ -113,18 +105,16 @@ export function AppProvider({ children }) {
   const setVolume = (v) => {
     const clamped = Math.min(1, Math.max(0, v));
     setVolumeState(clamped);
-    // If user is dragging volume, ensure we're playing (unmute)
     if (clamped > 0 && muted) {
       setMuted(false);
-      audioRef.current?.play().catch(() => {});
+      play();
     }
   };
 
   const playTrack = async (track) => {
     setNowPlaying({ ...track, isBackground: false });
     setTimeout(async () => {
-      const el = audioRef.current;
-      if (!el) return;
+      const el = audioRef.current; if (!el) return;
       el.currentTime = 0;
       try { await el.play(); setMuted(false); } catch {}
     }, 50);
@@ -133,8 +123,7 @@ export function AppProvider({ children }) {
   const stopTrackAndResumeBackground = async () => {
     setNowPlaying(null);
     setTimeout(async () => {
-      const el = audioRef.current;
-      if (!el) return;
+      const el = audioRef.current; if (!el) return;
       try { await el.play(); } catch {}
     }, 50);
   };
@@ -143,7 +132,7 @@ export function AppProvider({ children }) {
     lang, setLang,
     muted, isPlaying, toggleMute, autoplayBlocked,
     chantId, setChantId,
-    volume, setVolume,
+    volume, setVolume, volumeMax: 1.0,
     currentTrack, nowPlaying,
     playTrack, stopTrackAndResumeBackground, pause, play,
     deviceId,
