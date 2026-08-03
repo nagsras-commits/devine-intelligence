@@ -1,16 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import { DEITIES } from "@/data/deities";
 import { useApp } from "@/context/AppContext";
 import { pickLang, t } from "@/lib/i18n";
 import SlokaCard from "@/components/SlokaCard";
 import DeityImage from "@/components/DeityImage";
+import NamesModal from "@/components/NamesModal";
 import { ArrowLeft, Play, BookOpen, Music, Sparkles } from "lucide-react";
 
 export default function DeityDetail() {
   const { id } = useParams();
   const { lang, playTrack } = useApp();
   const deity = DEITIES.find((d) => d.id === id);
+  const [namesOpen, setNamesOpen] = useState(false);
   if (!deity) return <Navigate to="/deities" replace />;
 
   return (
@@ -83,11 +85,25 @@ export default function DeityDetail() {
               </span>
             ))}
           </div>
-          <div className="mt-4 text-xs italic text-muted-foreground">
-            Complete 108 & 1008 name recitations available in the audio playback below.
+          <div className="mt-4 text-xs italic text-muted-foreground flex items-center justify-between gap-3 flex-wrap">
+            <span>These are traditional divine names from the canonical stotras.</span>
+            <button
+              onClick={() => setNamesOpen(true)}
+              data-testid="open-names-modal"
+              className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs bg-gradient-to-r from-[hsl(var(--kumkum))] to-[hsl(var(--saffron))] text-white hover:opacity-90 diya-glow shrink-0"
+            >
+              <BookOpen className="w-3.5 h-3.5" /> Open full 108 & 1008 names
+            </button>
           </div>
         </div>
       </section>
+
+      <NamesModal
+        deityId={deity.id}
+        deityName={pickLang(deity.name, "en")}
+        isOpen={namesOpen}
+        onClose={() => setNamesOpen(false)}
+      />
 
       {/* Songs */}
       {deity.songs?.length > 0 && (

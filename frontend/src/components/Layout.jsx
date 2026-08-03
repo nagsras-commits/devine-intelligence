@@ -3,8 +3,10 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
 import { LANGUAGES, t } from "@/lib/i18n";
 import { BACKGROUND_CHANTS } from "@/data/deities";
-import { Volume2, VolumeX, Volume1, Home, Sunrise, Sparkles, CalendarDays, Music2, Languages, X, Flame, Leaf, Hash, PenLine } from "lucide-react";
+import { Volume2, VolumeX, Volume1, Home, Sunrise, Sparkles, CalendarDays, Music2, Languages, X, Flame, Leaf, Hash, PenLine, LogIn, User } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem,
@@ -88,6 +90,8 @@ export default function Layout({ children }) {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
+            {/* Auth button */}
+            <AuthButton />
             {/* Language switcher */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -242,5 +246,42 @@ export default function Layout({ children }) {
         </div>
       </div>
     </div>
+  );
+}
+
+
+function AuthButton() {
+  const { user, loading } = useAuth();
+  const nav = useNavigate();
+  if (loading) return null;
+  if (user) {
+    return (
+      <button
+        onClick={() => nav("/profile")}
+        data-testid="header-user-btn"
+        className="inline-flex items-center gap-2 rounded-full pl-1 pr-3 py-1 gold-border hover:bg-[hsl(var(--gold)/0.1)] transition"
+        aria-label="Your profile"
+        title={user.name}
+      >
+        {user.picture ? (
+          <img src={user.picture} alt="" className="w-7 h-7 rounded-full ring-1 ring-[hsl(var(--gold))]" referrerPolicy="no-referrer" />
+        ) : (
+          <span className="w-7 h-7 rounded-full grid place-items-center bg-[hsl(var(--gold)/0.15)] text-xs font-bold text-kumkum">
+            {user.name?.[0] || "🙏"}
+          </span>
+        )}
+        <span className="hidden sm:inline text-xs font-medium truncate max-w-[10ch]">{user.name?.split(" ")[0]}</span>
+      </button>
+    );
+  }
+  return (
+    <button
+      onClick={() => nav("/profile")}
+      data-testid="header-signin-btn"
+      className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs sm:text-sm gold-border hover:bg-[hsl(var(--gold)/0.1)] transition"
+    >
+      <LogIn className="w-3.5 h-3.5" />
+      <span className="hidden sm:inline">Sign in</span>
+    </button>
   );
 }

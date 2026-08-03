@@ -57,28 +57,22 @@ Additional user requests:
 - [x] Tulasi Pooja Vidhanam: 108 pradakṣiṇā counter (Web Audio bell + SpeechSynthesis whisper)
 - [x] 30-day diya streak (localStorage), Sadhana Certificate (html2canvas export)
 
-### 2026-02-27 (this session)
-- [x] **Added 22 new deities** (total 34) — Venkateswara, Padmavathi, Narasimha, Varaha,
-      Dattatreya, Lalitha, Kali, Varahi, Navagraha, Kubera, Gayatri, Parvathi, Raghavendra,
-      Annapurna, Chamundeshwari, Mahalakshmi (Kolhapur), Ganga, Bhairava, Dhanvantari, Santoshi,
-      **Vishwakarma, Veerabrahmendra Swamy**
-- [x] **34 AI-generated cinematic deity portraits** — Gemini 3.1 Flash Image (Nano Banana) via
-      EMERGENT_LLM_KEY. Self-hosted at `/api/static/deities/{id}.png` (FastAPI static mount).
-      Replaces old Ravi Varma paintings with hyper-realistic 8K temple-photo style. Veerabrahmendra
-      uses user-uploaded traditional image.
-- [x] **9 AI-generated page hero banners** — home, dinacharya, nitya_pooja, tulasi_pooja, japa,
-      rama_koti, deities, panchangam, festivals. Each page now has a stunning cinematic hero
-      section with backdrop banner.
-- [x] **PageHero component** — reusable hero with banner background, gold-shimmer animated title,
-      Sanskrit devanagari accent, eyebrow, subtitle. Applied to all main pages.
-- [x] **"DEVINE INTELLIGENCE" brand title** in header — metallic shimmering gold gradient with
-      Cinzel serif, 26px on desktop, letter-spaced elegant style.
-- [x] **Japa Counter** (`/japa`) — 1,00,00,116 target with certificate
-- [x] **Rāma Koṭi / Likhita Japa** (`/rama-koti`) — 21 divine name presets, text + finger writing pad
-- [x] **Finger Writing Pad** — canvas-based touch/stylus/mouse drawing
-- [x] **11+ background chants** — Suprabhatam, Datta Bāvani, Rāghavendra, Navagraha etc.
-- [x] **NamaCertificate** — reusable html2canvas-exported certificate
-- [x] Home page has Sādhanā section, refreshed hero with new banner
+### 2026-02-27 (this session — continued)
+- [x] **Emergent-managed Google Login** — Optional sign-in with Google.
+      - Backend: `/api/auth/session` (exchange session_id → cookie), `/api/auth/me`, `/api/auth/logout`
+      - Frontend: `AuthContext`, `Profile` page (`/profile`), header user badge / Sign-in button
+      - Guest mode remains default. Localstorage state auto-syncs to server on login (max-merge).
+- [x] **Cross-device sādhanā sync** — Backend `/api/user/sadhana` GET/POST syncs japa_counts,
+      likhita_counts, ritual_streak. Debounced auto-push from JapaCounter & RamaKoti.
+- [x] **MongoDB deity_names collection** — Populated via `generate_names.py` using Claude Sonnet 4.5
+      via Emergent LLM Key. Storage schema `{deity_id, ashtottara: [{n,sa,iast,te,meaning}...], sahasranama: [...]}`.
+- [x] **Backend deity names endpoint** — `GET /api/deities/{id}/names?kind=ashtottara|sahasranama&q=&page=&page_size=`
+      with server-side search over sa/iast/te/meaning and pagination.
+- [x] **NamesModal component** — Beautiful searchable, paginated 108/1008 viewer with tab switcher,
+      opened from any deity detail page via "Open full 108 & 1008 names" button.
+- [x] **Ashtottara generation for all 34 deities** — In-progress via background job. 9/34 done at
+      time of finish; rest will complete asynchronously.
+- [ ] Sahasranama for top 12 deities — deferred; batching strategy validated but generation slow.
 
 ## Backlog / Deferred
 ### P0 (next)

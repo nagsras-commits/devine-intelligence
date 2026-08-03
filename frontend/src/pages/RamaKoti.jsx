@@ -3,6 +3,8 @@ import { useApp } from "@/context/AppContext";
 import NamaCertificate from "@/components/NamaCertificate";
 import WritingPad from "@/components/WritingPad";
 import PageHero from "@/components/PageHero";
+import { useAuth } from "@/context/AuthContext";
+import axios from "axios";
 import { RotateCcw, Sparkles, PenLine, ChevronDown, Check, Volume2, VolumeX, Keyboard, Brush } from "lucide-react";
 
 const TARGET = 10000116;
@@ -275,6 +277,7 @@ const fmt = (n) => n.toLocaleString("en-IN");
 
 export default function RamaKoti() {
   const { lang } = useApp();
+  const { user } = useAuth();
   const [counts, setCounts] = useState(loadCounts);
   const [activeId, setActiveId] = useState(() => localStorage.getItem(KEY_ACTIVE) || NAME_PRESETS[0].id);
   const [entry, setEntry] = useState("");
@@ -297,6 +300,27 @@ export default function RamaKoti() {
   useEffect(() => { localStorage.setItem(KEY_ACTIVE, activeId); }, [activeId]);
   useEffect(() => { localStorage.setItem(KEY_BELL, String(bell)); }, [bell]);
   useEffect(() => { localStorage.setItem(KEY_MODE, mode); }, [mode]);
+
+  // Re-read after server sync
+  useEffect(() => {
+    const onSync = () => setCounts(loadCounts());
+    window.addEventListener("dj-sadhana-synced", onSync);
+    return () => window.removeEventListener("dj-sadhana-synced", onSync);
+  }, []);
+
+  // Debounced push likhita counts to server
+  const syncTimerRef = useRef(null);
+  useEffect(() => {
+    if (!user) return;
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(() => {
+      axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/sadhana/sync`,
+        { likhita_counts: counts, merge: true },
+        { withCredentials: true }
+      ).catch(() => {});
+    }, 2000);
+    return () => syncTimerRef.current && clearTimeout(syncTimerRef.current);
+  }, [counts, user]);
 
   // Shared counter increment (used by both typing and writing pad)
   const increment = () => {

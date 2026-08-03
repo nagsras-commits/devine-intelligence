@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Cookie, Header
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -11,6 +11,7 @@ from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime, timezone, date, timedelta
 import math
+import httpx
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -272,6 +273,191 @@ async def list_ritual_done(device_id: str, date_str: str):
 async def unmark_ritual(ritual_id: str, device_id: str, date_str: str):
     res = await db.ritual_log.delete_one({"ritual_id": ritual_id, "device_id": device_id, "date_str": date_str})
     return {"deleted": res.deleted_count}
+
+
+# =============================================================================
+# EMERGENT-MANAGED GOOGLE AUTH (optional — guest mode remains default)
+# REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+# =============================================================================
+EMERGENT_AUTH_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
+
+
+async def get_current_user(request: Request) -> Optional[Dict[str, Any]]:
+    """Return the currently-authenticated user or None (guest)."""
+    token = request.cookies.get("session_token")
+    if not token:
+        auth = request.headers.get("authorization")
+        if auth and auth.lower().startswith("bearer "):
+            token = auth.split(" ", 1)[1]
+    if not token:
+        return None
+
+    sess = await db.user_sessions.find_one({"session_token": token}, {"_id": 0})
+    if not sess:
+        return None
+
+    exp = sess["expires_at"]
+    if isinstance(exp, str):
+        exp = datetime.fromisoformat(exp)
+    if exp.tzinfo is None:
+        exp = exp.replace(tzinfo=timezone.utc)
+    if exp < datetime.now(timezone.utc):
+        return None
+
+    user = await db.users.find_one({"user_id": sess["user_id"]}, {"_id": 0})
+    return user
+
+
+@api_router.post("/auth/session")
+async def create_session(response: Response, x_session_id: str = Header(...)):
+    """Exchange Emergent session_id for a persistent session_token cookie."""
+    async with httpx.AsyncClient(timeout=15) as h:
+        r = await h.get(EMERGENT_AUTH_URL, headers={"X-Session-ID": x_session_id})
+    if r.status_code != 200:
+        raise HTTPException(401, "Invalid session id")
+    data = r.json()
+
+    email = data.get("email")
+    name = data.get("name") or email or "Devotee"
+    picture = data.get("picture") or ""
+    session_token = data["session_token"]
+
+    # Upsert user by email (custom user_id, exclude _id everywhere)
+    existing = await db.users.find_one({"email": email}, {"_id": 0})
+    if existing:
+        user_id = existing["user_id"]
+        await db.users.update_one({"user_id": user_id}, {"$set": {"name": name, "picture": picture}})
+    else:
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        await db.users.insert_one({
+            "user_id": user_id,
+            "email": email,
+            "name": name,
+            "picture": picture,
+            "created_at": datetime.now(timezone.utc),
+        })
+
+    # Save session
+    await db.user_sessions.insert_one({
+        "user_id": user_id,
+        "session_token": session_token,
+        "expires_at": datetime.now(timezone.utc) + timedelta(days=7),
+        "created_at": datetime.now(timezone.utc),
+    })
+
+    response.set_cookie(
+        key="session_token", value=session_token, max_age=7 * 24 * 3600,
+        httponly=True, secure=True, samesite="none", path="/",
+    )
+    return {"user_id": user_id, "email": email, "name": name, "picture": picture}
+
+
+@api_router.get("/auth/me")
+async def auth_me(request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(401, "Not authenticated")
+    return user
+
+
+@api_router.post("/auth/logout")
+async def logout(request: Request, response: Response):
+    token = request.cookies.get("session_token")
+    if token:
+        await db.user_sessions.delete_one({"session_token": token})
+    response.delete_cookie("session_token", path="/", samesite="none", secure=True)
+    return {"ok": True}
+
+
+# =============================================================================
+# USER SADHANA SYNC — japa counts, likhita counts, ritual streak
+# =============================================================================
+class SadhanaPayload(BaseModel):
+    japa_counts: Optional[Dict[str, int]] = None            # { deity_id: count }
+    likhita_counts: Optional[Dict[str, int]] = None         # { name_id: count }
+    ritual_streak: Optional[Dict[str, Any]] = None          # arbitrary streak data
+    merge: bool = True                                       # if True, max-merge; else overwrite
+
+
+@api_router.get("/user/sadhana")
+async def get_sadhana(request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(401, "Not authenticated")
+    doc = await db.user_sadhana.find_one({"user_id": user["user_id"]}, {"_id": 0}) or {}
+    return {
+        "japa_counts": doc.get("japa_counts", {}),
+        "likhita_counts": doc.get("likhita_counts", {}),
+        "ritual_streak": doc.get("ritual_streak", {}),
+        "updated_at": doc.get("updated_at"),
+    }
+
+
+@api_router.post("/user/sadhana/sync")
+async def sync_sadhana(request: Request, payload: SadhanaPayload):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(401, "Not authenticated")
+
+    doc = await db.user_sadhana.find_one({"user_id": user["user_id"]}, {"_id": 0}) or {}
+
+    def merge_counts(server: Dict[str, int], client: Dict[str, int]) -> Dict[str, int]:
+        out = dict(server or {})
+        for k, v in (client or {}).items():
+            out[k] = max(int(out.get(k, 0)), int(v or 0)) if payload.merge else int(v or 0)
+        return out
+
+    new_doc = {
+        "user_id": user["user_id"],
+        "japa_counts": merge_counts(doc.get("japa_counts", {}), payload.japa_counts or {}),
+        "likhita_counts": merge_counts(doc.get("likhita_counts", {}), payload.likhita_counts or {}),
+        "ritual_streak": payload.ritual_streak or doc.get("ritual_streak", {}),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.user_sadhana.update_one({"user_id": user["user_id"]}, {"$set": new_doc}, upsert=True)
+    return {
+        "japa_counts": new_doc["japa_counts"],
+        "likhita_counts": new_doc["likhita_counts"],
+        "ritual_streak": new_doc["ritual_streak"],
+    }
+
+
+# =============================================================================
+# DEITY NAMES — Ashtottara (108) & Sahasranama (1008) — MongoDB backed
+# =============================================================================
+@api_router.get("/deities/{deity_id}/names")
+async def get_deity_names(deity_id: str, kind: str = "ashtottara", q: str = "", page: int = 1, page_size: int = 108):
+    """Return names paginated + searchable. kind = 'ashtottara' | 'sahasranama'."""
+    if kind not in ("ashtottara", "sahasranama"):
+        raise HTTPException(400, "kind must be 'ashtottara' or 'sahasranama'")
+    doc = await db.deity_names.find_one({"deity_id": deity_id}, {"_id": 0}) or {}
+    names: List[Dict[str, Any]] = doc.get(kind, []) or []
+
+    if q:
+        ql = q.lower()
+        names = [n for n in names if
+                 ql in (n.get("iast") or "").lower() or
+                 ql in (n.get("meaning") or "").lower() or
+                 q in (n.get("sa") or "") or
+                 q in (n.get("te") or "")]
+
+    total = len(names)
+    page = max(1, page)
+    page_size = min(1008, max(10, page_size))
+    start = (page - 1) * page_size
+    end = start + page_size
+    return {
+        "deity_id": deity_id,
+        "kind": kind,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "names": names[start:end],
+        "available": {
+            "ashtottara": len(doc.get("ashtottara") or []),
+            "sahasranama": len(doc.get("sahasranama") or []),
+        },
+    }
 
 
 app.include_router(api_router)

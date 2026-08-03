@@ -4,6 +4,8 @@ import { useApp } from "@/context/AppContext";
 import { pickLang } from "@/lib/i18n";
 import NamaCertificate from "@/components/NamaCertificate";
 import PageHero from "@/components/PageHero";
+import { useAuth } from "@/context/AuthContext";
+import axios from "axios";
 import { RotateCcw, Volume2, VolumeX, Sparkles, ChevronDown } from "lucide-react";
 
 const TARGET = 10000116; // 1 crore + 116 (1,00,00,116)
@@ -36,12 +38,14 @@ const fmt = (n) => n.toLocaleString("en-IN");
 
 export default function JapaCounter() {
   const { lang } = useApp();
+  const { user } = useAuth();
   const [counts, setCounts] = useState(loadCounts);
   const [selectedId, setSelectedId] = useState(() => localStorage.getItem(KEY_DEITY) || DEITIES[0].id);
   const [bell, setBell] = useState(() => localStorage.getItem(KEY_BELL) !== "false");
   const [flash, setFlash] = useState(false);
   const [milestone, setMilestone] = useState(null);
   const lastTapRef = useRef(0);
+  const syncTimerRef = useRef(null);
 
   const deity = useMemo(() => DEITIES.find((d) => d.id === selectedId) || DEITIES[0], [selectedId]);
   const count = counts[selectedId] || 0;
@@ -56,6 +60,26 @@ export default function JapaCounter() {
   useEffect(() => saveCounts(counts), [counts]);
   useEffect(() => { localStorage.setItem(KEY_DEITY, selectedId); }, [selectedId]);
   useEffect(() => { localStorage.setItem(KEY_BELL, String(bell)); }, [bell]);
+
+  // Re-read localStorage when sadhana is synced from server
+  useEffect(() => {
+    const onSync = () => setCounts(loadCounts());
+    window.addEventListener("dj-sadhana-synced", onSync);
+    return () => window.removeEventListener("dj-sadhana-synced", onSync);
+  }, []);
+
+  // Debounced push of japa counts to server when user is logged in
+  useEffect(() => {
+    if (!user) return;
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(() => {
+      axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/user/sadhana/sync`,
+        { japa_counts: counts, merge: true },
+        { withCredentials: true }
+      ).catch(() => {});
+    }, 2000);
+    return () => syncTimerRef.current && clearTimeout(syncTimerRef.current);
+  }, [counts, user]);
 
   const tap = () => {
     // Debounce ultra-fast taps to prevent accidental double count from touch devices
