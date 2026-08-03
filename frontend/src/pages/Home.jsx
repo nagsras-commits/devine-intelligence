@@ -91,6 +91,91 @@ export default function Home() {
         </div>
       </section>
 
+      {/* EXPLORE — icon grid of every page */}
+      <section data-testid="explore-grid">
+        <div className="text-center mb-6">
+          <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">Sanātana Sādhanā</div>
+          <h2 className="mt-2 font-display font-bold text-3xl sm:text-4xl text-gold-shimmer inline-block" style={{ letterSpacing: "0.06em" }}>
+            Explore Your Devine Journey
+          </h2>
+          <div className="mt-2 font-devanagari text-lg text-saffron/80">॥ हरिः ॐ तत् सत् ॥</div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5">
+          {[
+            { to: "/dinacharya", icon: "dinacharya", title: t(lang, "dinacharya"), sanskrit: "दिनचर्या", desc: "Slokas for every moment of the day" },
+            { to: "/pooja", icon: "nitya_pooja", title: t(lang, "nitya_pooja"), sanskrit: "नित्यपूजा", desc: "The daily sacred ritual" },
+            { to: "/pooja/tulasi", icon: "tulasi_pooja", title: t(lang, "tulasi_pooja"), sanskrit: "तुलसीपूजा", desc: "108 pradakṣiṇā & Kārtika vow" },
+            { to: "/japa", icon: "japa", title: t(lang, "japa"), sanskrit: "जप", desc: "1,00,00,116 bīja mantra target" },
+            { to: "/rama-koti", icon: "rama_koti", title: t(lang, "rama_koti"), sanskrit: "रामकोटि", desc: "Likhita japa — write divine names" },
+            { to: "/deities", icon: "deities", title: t(lang, "deities"), sanskrit: "देवाः", desc: "34 deities • 108 & 1008 names" },
+            { to: "/panchangam", icon: "panchangam", title: t(lang, "panchangam"), sanskrit: "पञ्चाङ्गम्", desc: "Tithi, nakshatra, muhurta" },
+            { to: "/festivals", icon: "festivals", title: t(lang, "festivals"), sanskrit: "उत्सवाः", desc: "Stories, vidhi and mantras" },
+            { to: "/profile", icon: "profile", title: "Profile", sanskrit: "भक्तपरिचयः", desc: "Sync your sādhanā across devices" },
+            { to: "/", icon: "home", title: t(lang, "home"), sanskrit: "स्वस्ति", desc: "Return to the welcome hearth" },
+          ].map((tile) => (
+            <Link
+              key={tile.to + tile.title}
+              to={tile.to}
+              data-testid={`explore-tile-${tile.icon}`}
+              className="group relative rounded-2xl overflow-hidden gold-border diya-glow hover:diya-glow-strong transition-all hover:-translate-y-1"
+              style={{ background: "hsl(var(--gold) / 0.06)" }}
+            >
+              {/* Icon image */}
+              <div className="relative aspect-square overflow-hidden">
+                <img
+                  src={`${process.env.REACT_APP_BACKEND_URL}/api/static/icons/${tile.icon}.png`}
+                  alt={tile.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  loading="lazy"
+                />
+                {/* Bottom gradient for text legibility */}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-x-0 bottom-0 h-2/3"
+                  style={{
+                    background: "linear-gradient(180deg, transparent 0%, hsl(30 60% 8% / 0.4) 45%, hsl(30 60% 8% / 0.92) 100%)",
+                  }}
+                />
+                {/* Devanāgarī title floating top */}
+                <div
+                  className="absolute top-2 right-3 font-devanagari text-2xl sm:text-3xl leading-none"
+                  style={{
+                    background: "linear-gradient(120deg, hsl(45 100% 88%), hsl(30 100% 62%), hsl(45 100% 88%))",
+                    backgroundClip: "text",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.7))",
+                  }}
+                >
+                  {tile.sanskrit}
+                </div>
+                {/* Title + subtitle */}
+                <div className="absolute bottom-0 inset-x-0 p-3 sm:p-4 text-white">
+                  <div className="font-display font-bold text-base sm:text-lg leading-tight tracking-wide"
+                       style={{ textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>
+                    {tile.title}
+                  </div>
+                  <div className="text-[11px] sm:text-xs opacity-90 mt-0.5 line-clamp-2"
+                       style={{ textShadow: "0 1px 4px rgba(0,0,0,0.85)" }}>
+                    {tile.desc}
+                  </div>
+                </div>
+                {/* Hover shine sweep */}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                  style={{
+                    background: "linear-gradient(115deg, transparent 30%, hsl(45 100% 75% / 0.30) 50%, transparent 70%)",
+                  }}
+                />
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+
       {/* TODAY: Panchangam + Festival */}
       <section className="grid lg:grid-cols-3 gap-6">
         <div data-testid="today-panchangam-card" className="lg:col-span-2 sacred-card">
