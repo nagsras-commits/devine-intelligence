@@ -1,0 +1,32 @@
+{
+  "name": "Devine Intelligence — Sanātana Dharma",
+  "short_name": "Devine Intel",
+  "description": "A Sanātana Dharma companion — daily slokas, Panchāngam, Muhūrta alarms, Kundali, 34 deities and Rāma Koṭi.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#1a0f08",
+  "theme_color": "#c2410c",
+  "categories": ["lifestyle", "education", "spirituality"],
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/api/static/icons/home.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/api/static/icons/home.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Japa Counter", "url": "/japa", "icons": [{"src": "/api/static/icons/japa.png", "sizes": "192x192"}] },
+    { "name": "Rāma Koṭi",   "url": "/rama-koti", "icons": [{"src": "/api/static/icons/rama_koti.png", "sizes": "192x192"}] },
+    { "name": "Panchāngam",  "url": "/panchangam", "icons": [{"src": "/api/static/icons/panchangam.png", "sizes": "192x192"}] }
+  ]
+}

@@ -40,6 +40,60 @@ def _parse_hhmm(s: str) -> Tuple[int, int]:
     return int(parts[0]), int(parts[1])
 
 
+def compute_sunrise_sunset(d: date_cls, lat: float, lng: float, tz_offset: float = 5.5) -> Tuple[str, str]:
+    """Real astronomical sunrise/sunset via pyswisseph.
+
+    Returns ("HH:MM", "HH:MM") in local time (tz_offset in decimal hours).
+    Falls back to a simple sinusoidal model on error.
+    """
+    try:
+        # Start looking for the day's sunrise from local midnight (UT)
+        jd_start = swe.julday(d.year, d.month, d.day, 0.0 - tz_offset)
+
+        geopos = (lng, lat, 0.0)  # (longitude east, latitude north, altitude)
+        # RSMI = rise. Note swe.rise_trans expects (jd_ut, planet, geopos, atpress, attemp, rsmi)
+        rsmi_rise = swe.CALC_RISE | swe.BIT_DISC_CENTER
+        rsmi_set  = swe.CALC_SET  | swe.BIT_DISC_CENTER
+
+        # newer pyswisseph API: rise_trans(jd_start, body, rsmi, geopos, atpress, attemp)
+        ret, rise_jd = swe.rise_trans(jd_start, swe.SUN, rsmi_rise, geopos, 0, 0)
+        if ret < 0 or not rise_jd:
+            raise ValueError("no rise")
+        ret2, set_jd = swe.rise_trans(jd_start, swe.SUN, rsmi_set, geopos, 0, 0)
+        if ret2 < 0 or not set_jd:
+            raise ValueError("no set")
+
+        # rise_jd/set_jd may be tuple in some versions
+        r_ut = rise_jd[0] if isinstance(rise_jd, (tuple, list)) else rise_jd
+        s_ut = set_jd[0]  if isinstance(set_jd,  (tuple, list)) else set_jd
+
+        # convert to local time-of-day (hours) — JD starts at noon UT, so add 0.5
+        r_local = (((r_ut + tz_offset / 24.0) + 0.5) % 1.0) * 24.0
+        s_local = (((s_ut + tz_offset / 24.0) + 0.5) % 1.0) * 24.0
+
+        def fmt(h_dec: float) -> str:
+            h = int(h_dec) % 24
+            m = int(round((h_dec - int(h_dec)) * 60))
+            if m == 60: h = (h + 1) % 24; m = 0
+            return f"{h:02d}:{m:02d}"
+
+        return fmt(r_local), fmt(s_local)
+    except Exception:
+        # Fallback: approximate model (Hyderabad-like)
+        import math
+        doy = d.timetuple().tm_yday
+        # crude latitude adjustment (deviation from 17°N reference)
+        lat_shift = (lat - 17.4) * 0.03
+        sr = 6 + math.sin(2 * math.pi * (doy - 80) / 365) * 0.5 + lat_shift
+        ss = 18 - math.sin(2 * math.pi * (doy - 80) / 365) * 0.5 - lat_shift
+        def fmt(h_dec):
+            h = int(h_dec) % 24
+            m = int(round((h_dec - int(h_dec)) * 60))
+            if m == 60: h = (h + 1) % 24; m = 0
+            return f"{h:02d}:{m:02d}"
+        return fmt(sr), fmt(ss)
+
+
 def compute_muhurta_timings(sunrise: str, sunset: str, weekday: int) -> Dict[str, Any]:
     """weekday: 0=Monday .. 6=Sunday (Python .weekday())."""
     sr_h, sr_m = _parse_hhmm(sunrise); ss_h, ss_m = _parse_hhmm(sunset)

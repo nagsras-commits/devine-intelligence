@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Sun, Moon, AlertTriangle, CheckCircle2, Clock } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, MapPin, Loader2 } from "lucide-react";
+import useGeolocation from "@/hooks/useGeolocation";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -26,17 +27,25 @@ const inRange = (start, end) => {
 };
 
 export default function MuhurtaTimings() {
+  const geo = useGeolocation();
   const [data, setData] = useState(null);
-  const [tick, setTick] = useState(0);
+  const [, setTick] = useState(0);
+
+  const load = () => {
+    const params = geo.status === "ready" ? { lat: geo.lat, lng: geo.lng, tz_offset: geo.tz_offset } : {};
+    axios.get(`${API}/panchangam/timings`, { params }).then((r) => setData(r.data)).catch(() => {});
+  };
+
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [geo.status, geo.lat, geo.lng]);
 
   useEffect(() => {
-    axios.get(`${API}/panchangam/timings`).then((r) => setData(r.data)).catch(() => {});
-    const int = setInterval(() => setTick((t) => t + 1), 30000); // re-render every 30s
+    const int = setInterval(() => setTick((t) => t + 1), 30000);
     return () => clearInterval(int);
   }, []);
 
   if (!data) return null;
   const items = Object.entries(data.timings);
+  const geoActive = data.source === "geolocation";
 
   return (
     <section className="sacred-card grain" data-testid="muhurta-timings">
@@ -45,6 +54,28 @@ export default function MuhurtaTimings() {
         <h3 className="text-xl font-semibold text-kumkum dark:text-[hsl(var(--gold))]">Muhūrta Timings — Today</h3>
         <span className="ml-auto text-[10px] text-muted-foreground">Sunrise {data.sunrise} • Sunset {data.sunset}</span>
       </div>
+
+      {/* Geo status */}
+      <div className="mb-3 flex flex-wrap items-center gap-2 text-[11px]">
+        {geoActive ? (
+          <span data-testid="geo-active" className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 gold-border bg-emerald-500/10 text-emerald-700">
+            <MapPin className="w-3 h-3" /> Using your location for accurate timings
+          </span>
+        ) : geo.status === "loading" ? (
+          <span className="inline-flex items-center gap-1 text-muted-foreground"><Loader2 className="w-3 h-3 animate-spin" /> Detecting location…</span>
+        ) : geo.status === "denied" ? (
+          <span data-testid="geo-denied" className="inline-flex items-center gap-1 text-muted-foreground italic">Using approximate timings — allow location for precise sunrise/sunset.</span>
+        ) : (
+          <button
+            onClick={geo.request}
+            data-testid="geo-request-btn"
+            className="inline-flex items-center gap-1 rounded-full px-3 py-1 gold-border hover:bg-[hsl(var(--gold)/0.12)]"
+          >
+            <MapPin className="w-3 h-3" /> Use my location for precise timings
+          </button>
+        )}
+      </div>
+
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {items.map(([key, t]) => {
           const active = inRange(t.start, t.end);
@@ -78,7 +109,7 @@ export default function MuhurtaTimings() {
         })}
       </div>
       <p className="text-[11px] text-muted-foreground italic mt-3">
-        Timings are calculated from local sunrise/sunset. Regional variations apply.
+        {geoActive ? "Timings are computed from precise astronomical sunrise/sunset at your location." : "Timings use approximate sunrise/sunset. Allow location for higher accuracy."}
       </p>
     </section>
   );

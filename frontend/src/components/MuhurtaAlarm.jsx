@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
-import { Bell, BellOff, Music2, X, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Bell, BellOff, Music2, X, CheckCircle2, AlertTriangle, BellRing } from "lucide-react";
 import { BACKGROUND_CHANTS } from "@/data/deities";
+import useGeolocation from "@/hooks/useGeolocation";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const PREF_KEY = "dj_alarm_prefs_v1";
 const FIRED_KEY = "dj_alarm_fired_v1";
+const SCHED_KEY = "dj_alarm_scheduled_v1";
 
 const DEFAULT_PREFS = {
   enabled: { brahma_muhurta: true, abhijit_muhurta: true, amrita_kala: true, rahu_kala: true, yama_ganda: true, gulika_kala: false, durmuhurta: false },
@@ -13,6 +15,7 @@ const DEFAULT_PREFS = {
   leadMinutes: 0,                // 0 = fire at start; user can pick 5, 10, 30
   ringSeconds: 25,               // how long the alarm plays
   vibrate: true,
+  browserNotify: false,          // OS-level notification via Service Worker
 };
 
 const loadPrefs = () => {
@@ -33,18 +36,35 @@ const saveFired = (v) => localStorage.setItem(FIRED_KEY, JSON.stringify(v));
 const parseHM = (hm) => { const [h, m] = hm.split(":").map(Number); return h * 60 + m; };
 const nowMinutes = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
 
+// Schedule an OS-level notification via the registered SW
+const scheduleSwNotification = (title, body, delayMs, tag) => {
+  if (!("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.ready.then((reg) => {
+    reg.active?.postMessage({
+      type: "schedule-notification",
+      title, body, delayMs, tag,
+      url: "/panchangam",
+    });
+  }).catch(() => {});
+};
+
 export default function MuhurtaAlarm() {
+  const geo = useGeolocation();
   const [prefs, setPrefs] = useState(loadPrefs);
   const [timings, setTimings] = useState(null);
   const [ringing, setRinging] = useState(null); // { key, timing }
   const [openConfig, setOpenConfig] = useState(false);
+  const [notifStatus, setNotifStatus] = useState(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
   const audioRef = useRef(null);
   const ringStopRef = useRef(null);
 
-  // Fetch today's timings once
+  // Fetch today's timings — respect geolocation if allowed
   useEffect(() => {
-    axios.get(`${API}/panchangam/timings`).then((r) => setTimings(r.data.timings)).catch(() => {});
-  }, []);
+    const params = geo.status === "ready" ? { lat: geo.lat, lng: geo.lng, tz_offset: geo.tz_offset } : {};
+    axios.get(`${API}/panchangam/timings`, { params })
+      .then((r) => setTimings(r.data.timings))
+      .catch(() => {});
+  }, [geo.status, geo.lat, geo.lng]);
 
   useEffect(() => savePrefs(prefs), [prefs]);
 
@@ -54,7 +74,35 @@ export default function MuhurtaAlarm() {
     return c?.url || BACKGROUND_CHANTS[0]?.url;
   }, [prefs.ringtoneId]);
 
-  // Poll for scheduled fires — every 15s
+  // Schedule OS-level notifications via SW for all enabled timings (persistent, works when tab backgrounded)
+  useEffect(() => {
+    if (!timings || !prefs.browserNotify || notifStatus !== "granted") return;
+    if (!("serviceWorker" in navigator)) return;
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    // Track scheduled tags today so we don't double-schedule
+    let scheduled = {};
+    try { scheduled = JSON.parse(localStorage.getItem(SCHED_KEY) || "{}"); } catch {}
+    if (scheduled.date !== today) scheduled = { date: today, tags: {} };
+    Object.entries(timings).forEach(([key, t]) => {
+      if (!prefs.enabled[key]) return;
+      const [sh, sm] = t.start.split(":").map(Number);
+      const target = new Date(now);
+      target.setHours(sh, sm - (prefs.leadMinutes || 0), 0, 0);
+      const delay = target - now;
+      const tag = `${today}::${key}::${prefs.leadMinutes}`;
+      if (delay > 0 && delay <= 24 * 3600 * 1000 && !scheduled.tags[tag]) {
+        const body = t.type === "auspicious"
+          ? `${t.label} begins ${t.start} — auspicious for good work.`
+          : `${t.label} begins ${t.start} — avoid new work.`;
+        scheduleSwNotification(`Muhūrta: ${t.label}`, body, delay, tag);
+        scheduled.tags[tag] = 1;
+      }
+    });
+    try { localStorage.setItem(SCHED_KEY, JSON.stringify(scheduled)); } catch {}
+  }, [timings, prefs.enabled, prefs.browserNotify, prefs.leadMinutes, notifStatus]);
+
+  // Poll for scheduled fires — every 15s (in-tab audio+overlay)
   useEffect(() => {
     if (!timings) return;
     const tick = () => {
@@ -88,8 +136,28 @@ export default function MuhurtaAlarm() {
     } catch (e) {}
     // Vibrate
     if (prefs.vibrate && "vibrate" in navigator) navigator.vibrate([500, 250, 500, 250, 800]);
+    // Immediate OS notification if tab is hidden and permission granted
+    if (prefs.browserNotify && notifStatus === "granted" && document.hidden && "serviceWorker" in navigator) {
+      navigator.serviceWorker.ready.then((reg) => {
+        reg.active?.postMessage({
+          type: "show-notification",
+          title: `Muhūrta: ${t.label}`,
+          body: `${t.start} – ${t.end} • ${t.type === "auspicious" ? "Auspicious" : "Inauspicious"}`,
+          tag: `now-${key}-${Date.now()}`,
+        });
+      }).catch(() => {});
+    }
     // Auto-stop
     ringStopRef.current = setTimeout(() => stopAlarm(), (prefs.ringSeconds || 25) * 1000);
+  };
+
+  const requestNotifPerm = async () => {
+    if (typeof Notification === "undefined") return;
+    try {
+      const p = await Notification.requestPermission();
+      setNotifStatus(p);
+      if (p === "granted") setPrefs((s) => ({ ...s, browserNotify: true }));
+    } catch (e) { /* ignore */ }
   };
 
   const stopAlarm = () => {
@@ -198,6 +266,35 @@ export default function MuhurtaAlarm() {
             />
             Vibrate (mobile)
           </label>
+          <div className="sm:col-span-3 rounded-lg p-3 gold-border bg-[hsl(var(--gold)/0.05)]">
+            <div className="flex items-start gap-2">
+              <BellRing className="w-4 h-4 text-saffron mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <div className="text-xs font-medium">OS-level browser notifications</div>
+                <div className="text-[11px] text-muted-foreground">
+                  Ring the alarm even when this tab is in the background. Scheduled once you allow permission.
+                </div>
+              </div>
+              {notifStatus === "granted" ? (
+                <label className="inline-flex items-center gap-2 text-xs shrink-0">
+                  <input
+                    type="checkbox" checked={!!prefs.browserNotify}
+                    onChange={(e) => setPrefs({ ...prefs, browserNotify: e.target.checked })}
+                    data-testid="alarm-browser-notify"
+                  />
+                  Enable
+                </label>
+              ) : notifStatus === "denied" ? (
+                <span className="text-[11px] text-red-600 shrink-0">Blocked in browser</span>
+              ) : (
+                <button
+                  onClick={requestNotifPerm}
+                  data-testid="alarm-notify-request"
+                  className="text-[11px] rounded-full px-3 py-1.5 gold-border hover:bg-[hsl(var(--gold)/0.12)] shrink-0"
+                >Enable</button>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

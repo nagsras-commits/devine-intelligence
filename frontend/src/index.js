@@ -21,3 +21,17 @@ root.render(
     </QueryClientProvider>
   </React.StrictMode>,
 );
+
+// Register Service Worker for PWA offline support + Notification API
+if ("serviceWorker" in navigator && window.location.protocol === "https:") {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/service-worker.js", { scope: "/" })
+      .then((reg) => {
+        window.__djSW = reg;
+        // trigger update check
+        reg.update?.().catch(() => {});
+      })
+      .catch(() => {});
+  });
+}

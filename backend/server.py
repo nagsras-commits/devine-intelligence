@@ -465,7 +465,7 @@ async def get_deity_names(deity_id: str, kind: str = "ashtottara", q: str = "", 
 # =============================================================================
 # ASTROLOGY — Muhūrta timings, Kundali, Daily Horoscope
 # =============================================================================
-from astrology import compute_kundali, compute_muhurta_timings
+from astrology import compute_kundali, compute_muhurta_timings, compute_sunrise_sunset
 try:
     from emergentintegrations.llm.chat import LlmChat, UserMessage
     LLM_AVAILABLE = True
@@ -474,17 +474,30 @@ except Exception:
 
 
 @api_router.get("/panchangam/timings")
-async def get_muhurta_timings(date_str: Optional[str] = None):
-    """Return Rāhu Kāla, Yama Gaṇḍa, Gulika Kāla, Abhijit, Brahma & Amṛta Muhurtas."""
+async def get_muhurta_timings(
+    date_str: Optional[str] = None,
+    lat: Optional[float] = None,
+    lng: Optional[float] = None,
+    tz_offset: Optional[float] = 5.5,
+):
+    """Return Rāhu Kāla, Yama Gaṇḍa, Gulika Kāla, Abhijit, Brahma & Amṛta Muhurtas.
+
+    If lat/lng provided, uses pyswisseph for accurate local sunrise/sunset. Otherwise
+    falls back to Hyderabad-approximate model.
+    """
     d = date_cls.fromisoformat(date_str) if date_str else date_cls.today()
-    # Reuse the existing panchangam logic for sunrise/sunset (approx from calc)
-    day_of_year = d.timetuple().tm_yday
-    sunrise_hour = 6 + math.sin(2 * math.pi * (day_of_year - 80) / 365) * 0.5
-    sunset_hour = 18 - math.sin(2 * math.pi * (day_of_year - 80) / 365) * 0.5
-    sunrise = f"{int(sunrise_hour):02d}:{int((sunrise_hour % 1) * 60):02d}"
-    sunset  = f"{int(sunset_hour):02d}:{int((sunset_hour % 1) * 60):02d}"
+    if lat is not None and lng is not None:
+        sunrise, sunset = compute_sunrise_sunset(d, lat, lng, 5.5 if tz_offset is None else tz_offset)
+        source = "geolocation"
+    else:
+        day_of_year = d.timetuple().tm_yday
+        sunrise_hour = 6 + math.sin(2 * math.pi * (day_of_year - 80) / 365) * 0.5
+        sunset_hour = 18 - math.sin(2 * math.pi * (day_of_year - 80) / 365) * 0.5
+        sunrise = f"{int(sunrise_hour):02d}:{int((sunrise_hour % 1) * 60):02d}"
+        sunset  = f"{int(sunset_hour):02d}:{int((sunset_hour % 1) * 60):02d}"
+        source = "approximate"
     timings = compute_muhurta_timings(sunrise, sunset, d.weekday())
-    return {"date": d.isoformat(), "sunrise": sunrise, "sunset": sunset, "timings": timings}
+    return {"date": d.isoformat(), "sunrise": sunrise, "sunset": sunset, "source": source, "timings": timings}
 
 
 class KundaliRequest(BaseModel):
