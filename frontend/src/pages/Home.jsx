@@ -7,6 +7,7 @@ import { RITUALS } from "@/data/rituals";
 import { DEITIES } from "@/data/deities";
 import { FESTIVALS } from "@/data/festivals";
 import DeityImage from "@/components/DeityImage";
+import DeityOfDayRibbon from "@/components/DeityOfDayRibbon";
 import { ArrowRight, Sunrise, CalendarDays, Sparkles, Flame, Hash, PenLine } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -38,6 +39,9 @@ export default function Home() {
 
   return (
     <div className="space-y-14">
+      {/* DEITY OF THE DAY RIBBON */}
+      <DeityOfDayRibbon />
+
       {/* HERO */}
       <section
         data-testid="hero-section"
@@ -103,16 +107,16 @@ export default function Home() {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5">
           {[
-            { to: "/dinacharya", icon: "dinacharya", title: t(lang, "dinacharya"), sanskrit: "दिनचर्या", desc: "Slokas for every moment of the day" },
-            { to: "/pooja", icon: "nitya_pooja", title: t(lang, "nitya_pooja"), sanskrit: "नित्यपूजा", desc: "The daily sacred ritual" },
-            { to: "/pooja/tulasi", icon: "tulasi_pooja", title: t(lang, "tulasi_pooja"), sanskrit: "तुलसीपूजा", desc: "108 pradakṣiṇā & Kārtika vow" },
-            { to: "/japa", icon: "japa", title: t(lang, "japa"), sanskrit: "जप", desc: "1,00,00,116 bīja mantra target" },
-            { to: "/rama-koti", icon: "rama_koti", title: t(lang, "rama_koti"), sanskrit: "रामकोटि", desc: "Likhita japa — write divine names" },
-            { to: "/deities", icon: "deities", title: t(lang, "deities"), sanskrit: "देवाः", desc: "34 deities • 108 & 1008 names" },
-            { to: "/panchangam", icon: "panchangam", title: t(lang, "panchangam"), sanskrit: "पञ्चाङ्गम्", desc: "Tithi, nakshatra, muhurta" },
-            { to: "/festivals", icon: "festivals", title: t(lang, "festivals"), sanskrit: "उत्सवाः", desc: "Stories, vidhi and mantras" },
-            { to: "/profile", icon: "profile", title: "Profile", sanskrit: "भक्तपरिचयः", desc: "Sync your sādhanā across devices" },
-            { to: "/", icon: "home", title: t(lang, "home"), sanskrit: "स्वस्ति", desc: "Return to the welcome hearth" },
+            { to: "/dinacharya", icon: "dinacharya", title: t(lang, "dinacharya"), sanskrit: "दिनचर्या", desc: t(lang, "slokas_desc") },
+            { to: "/pooja", icon: "nitya_pooja", title: t(lang, "nitya_pooja"), sanskrit: "नित्यपूजा", desc: t(lang, "nitya_pooja_desc") },
+            { to: "/pooja/tulasi", icon: "tulasi_pooja", title: t(lang, "tulasi_pooja"), sanskrit: "तुलसीपूजा", desc: t(lang, "tulasi_pooja_desc") },
+            { to: "/japa", icon: "japa", title: t(lang, "japa"), sanskrit: "जप", desc: t(lang, "japa_desc") },
+            { to: "/rama-koti", icon: "rama_koti", title: t(lang, "rama_koti"), sanskrit: "रामकोटि", desc: t(lang, "rama_koti_desc") },
+            { to: "/deities", icon: "deities", title: t(lang, "deities"), sanskrit: "देवाः", desc: t(lang, "deities_desc") },
+            { to: "/panchangam", icon: "panchangam", title: t(lang, "panchangam"), sanskrit: "पञ्चाङ्गम्", desc: t(lang, "panchangam_desc") },
+            { to: "/festivals", icon: "festivals", title: t(lang, "festivals"), sanskrit: "उत्सवाः", desc: t(lang, "festivals_desc") },
+            { to: "/profile", icon: "profile", title: "Profile", sanskrit: "भक्तपरिचयः", desc: t(lang, "profile_desc") },
+            { to: "/", icon: "home", title: t(lang, "home"), sanskrit: "स्वस्ति", desc: t(lang, "home_desc") },
           ].map((tile) => (
             <Link
               key={tile.to + tile.title}
