@@ -9,9 +9,11 @@ from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
 import uuid
-from datetime import datetime, timezone, date, timedelta
+from datetime import datetime, timezone, date as date_cls, timedelta
+date = date_cls  # backward-compat alias for existing panchangam code
 import math
 import httpx
+import json
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -460,7 +462,159 @@ async def get_deity_names(deity_id: str, kind: str = "ashtottara", q: str = "", 
     }
 
 
+# =============================================================================
+# ASTROLOGY — Muhūrta timings, Kundali, Daily Horoscope
+# =============================================================================
+from astrology import compute_kundali, compute_muhurta_timings
+try:
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    LLM_AVAILABLE = True
+except Exception:
+    LLM_AVAILABLE = False
+
+
+@api_router.get("/panchangam/timings")
+async def get_muhurta_timings(date_str: Optional[str] = None):
+    """Return Rāhu Kāla, Yama Gaṇḍa, Gulika Kāla, Abhijit, Brahma & Amṛta Muhurtas."""
+    d = date_cls.fromisoformat(date_str) if date_str else date_cls.today()
+    # Reuse the existing panchangam logic for sunrise/sunset (approx from calc)
+    day_of_year = d.timetuple().tm_yday
+    sunrise_hour = 6 + math.sin(2 * math.pi * (day_of_year - 80) / 365) * 0.5
+    sunset_hour = 18 - math.sin(2 * math.pi * (day_of_year - 80) / 365) * 0.5
+    sunrise = f"{int(sunrise_hour):02d}:{int((sunrise_hour % 1) * 60):02d}"
+    sunset  = f"{int(sunset_hour):02d}:{int((sunset_hour % 1) * 60):02d}"
+    timings = compute_muhurta_timings(sunrise, sunset, d.weekday())
+    return {"date": d.isoformat(), "sunrise": sunrise, "sunset": sunset, "timings": timings}
+
+
+class KundaliRequest(BaseModel):
+    name: Optional[str] = None
+    dob: str = Field(..., description="YYYY-MM-DD")
+    time: str = Field(..., description="HH:MM 24-hour")
+    place: str
+    lat: float
+    lng: float
+    tz_offset: float = 5.5
+
+
+@api_router.post("/kundali/generate")
+async def generate_kundali(payload: KundaliRequest, request: Request):
+    """Compute Kundali + optionally AI-generated reading. Persists per-user if signed-in."""
+    chart = compute_kundali(payload.dob, payload.time, payload.lat, payload.lng, payload.tz_offset)
+
+    reading = ""
+    if LLM_AVAILABLE and os.getenv("EMERGENT_LLM_KEY"):
+        try:
+            chat = LlmChat(
+                api_key=os.environ["EMERGENT_LLM_KEY"],
+                session_id=f"kundali-{uuid.uuid4().hex[:8]}",
+                system_message="You are an experienced Vedic astrologer. Give warm, personalized guidance. Never predict specific dates of death or catastrophes. Emphasize dharma, karma and personal effort alongside astrological patterns.",
+            )
+            chat.with_model("anthropic", "claude-sonnet-4-5-20250929").with_params(max_tokens=4096)
+            summary = {
+                "name": payload.name or "the native",
+                "lagna": chart["lagna"]["rasi"],
+                "janma_rasi": chart["janma_rasi"],
+                "janma_nakshatra": chart["janma_nakshatra"],
+                "planets": [{"n": p["name"], "r": p["rasi"], "h": p["house"], "nak": p["nakshatra"]} for p in chart["planets"]],
+                "current_dasha": chart["vimshottari_dasha"][0],
+                "doshas": chart["doshas"],
+            }
+            prompt = (
+                f"Give a personalized Vedic Kundali reading for {payload.name or 'this native'} born on "
+                f"{payload.dob} at {payload.time} in {payload.place}. Their chart summary is:\n\n"
+                f"{json.dumps(summary, ensure_ascii=False, indent=2)}\n\n"
+                "Please write 6 sections (use ## Markdown headings):\n"
+                "1. **Overview** — Lagna, Janma Rāśi & Nakshatra character traits.\n"
+                "2. **Career & Wealth** — 10th, 2nd, 11th houses.\n"
+                "3. **Marriage & Relationships** — 7th, 5th houses; note any doshas.\n"
+                "4. **Health & Vitality** — 1st, 6th, 8th houses.\n"
+                "5. **Current Mahādaśā** — What this period suggests + spiritual guidance.\n"
+                "6. **Remedies** — Simple mantras, deity worship, colours, gemstones (only suggest, don't demand)\n\n"
+                "Keep it uplifting, ~400-600 words total."
+            )
+            reading = await chat.send_message(UserMessage(text=prompt))
+        except Exception as e:
+            reading = f"(AI reading currently unavailable: {e})"
+
+    # If user is signed-in, persist
+    user = await get_current_user(request)
+    if user:
+        await db.user_kundali.update_one(
+            {"user_id": user["user_id"]},
+            {"$set": {
+                "user_id": user["user_id"],
+                "name": payload.name, "dob": payload.dob, "time": payload.time,
+                "place": payload.place, "lat": payload.lat, "lng": payload.lng, "tz_offset": payload.tz_offset,
+                "chart": chart, "reading": reading,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }},
+            upsert=True,
+        )
+
+    return {"chart": chart, "reading": reading, "saved": bool(user)}
+
+
+@api_router.get("/kundali/mine")
+async def get_saved_kundali(request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(401, "Not authenticated")
+    doc = await db.user_kundali.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    if not doc:
+        raise HTTPException(404, "No kundali saved")
+    return doc
+
+
+@api_router.get("/horoscope")
+async def get_horoscope(rashi: Optional[str] = None, nakshatra: Optional[str] = None, date_str: Optional[str] = None):
+    """Daily horoscope for a given rāśi and/or nakshatra. Cached for 24h."""
+    d = date_str or date_cls.today().isoformat()
+    if not rashi and not nakshatra:
+        raise HTTPException(400, "rashi or nakshatra required")
+
+    cache_key = f"{d}::{(rashi or '').lower()}::{(nakshatra or '').lower()}"
+    cached = await db.horoscope_cache.find_one({"key": cache_key}, {"_id": 0})
+    if cached:
+        return cached["data"]
+
+    if not LLM_AVAILABLE or not os.getenv("EMERGENT_LLM_KEY"):
+        return {"date": d, "rashi": rashi, "nakshatra": nakshatra, "prediction": "Horoscope service temporarily unavailable."}
+
+    try:
+        chat = LlmChat(
+            api_key=os.environ["EMERGENT_LLM_KEY"],
+            session_id=f"horo-{cache_key}",
+            system_message="You are a compassionate Vedic astrologer. Give short, uplifting daily predictions rooted in classical jyotish. Always end with a positive mantra or affirmation.",
+        )
+        chat.with_model("anthropic", "claude-sonnet-4-5-20250929").with_params(max_tokens=800)
+        who = []
+        if rashi: who.append(f"Rāśi (Moon sign): {rashi}")
+        if nakshatra: who.append(f"Janma Nakshatra: {nakshatra}")
+        prompt = (
+            f"Give today's Vedic horoscope for {d}.\n"
+            + "\n".join(who) + "\n\n"
+            "Provide 5 short sections (~35 words each) in this JSON format only:\n"
+            '{"general": "...", "career": "...", "health": "...", "relationships": "...", "wealth": "...", "lucky_color": "...", "lucky_number": ..., "mantra": "..."}\n'
+            "No commentary outside the JSON."
+        )
+        reply = await chat.send_message(UserMessage(text=prompt))
+        import re as _re, json as _j
+        m = _re.search(r"\{[\s\S]*\}", reply)
+        if not m:
+            raise ValueError("No JSON returned")
+        data = _j.loads(m.group(0))
+        payload = {"date": d, "rashi": rashi, "nakshatra": nakshatra, **data}
+        await db.horoscope_cache.update_one({"key": cache_key}, {"$set": {"key": cache_key, "data": payload, "cached_at": datetime.now(timezone.utc)}}, upsert=True)
+        return payload
+    except Exception as e:
+        return {"date": d, "rashi": rashi, "nakshatra": nakshatra, "prediction": f"(temporarily unavailable: {e})"}
+
+
 app.include_router(api_router)
+
+
+
 
 # Mount static images (deity portraits) — accessible at /api/static/deities/{id}.png
 app.mount("/api/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
