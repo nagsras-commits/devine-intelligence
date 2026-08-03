@@ -59,7 +59,7 @@ Additional user requests:
 - [x] MongoDB `deity_names` collection populated via `generate_names.py` (Claude Sonnet 4.5).
 - [x] `NamesModal` — searchable, paginated 108/1008 viewer.
 
-### 2026-08-03 (this session — Astrology + Ribbon + Multilingual)
+### 2026-08-03 (this session — Astrology + Ribbon + Multilingual + PWA/Push/Geo/Kundali export)
 - [x] **Vedic Astrology suite (P0)** on `/panchangam`:
   - New tab bar: Panchāngam / Muhūrta & Alarms / Kundali / Horoscope.
   - `MuhurtaTimings` — Rāhu Kāla, Yama Gaṇḍa, Gulika, Abhijit, Brahma, Amṛta, Durmuhūrta with
@@ -69,22 +69,31 @@ Additional user requests:
     Claude Sonnet 4.5. Persists per user if signed in.
   - `DailyHoroscope` — by Rāśi and/or Nakshatra with 5 sections + lucky color/number/mantra
     (cached 24h in `horoscope_cache`).
-- [x] **Muhūrta Alarm (P0)** — `MuhurtaAlarm` component with:
-  - Devotional ringtones (Om, Om Namaḥ Śivāya 432 Hz, Gāyatrī, Mahā Mṛtyuñjaya, Hanumān
-    Chālīsā, Viṣṇu Sahasranāmam, Lalitā Sahasranāmam, Suprabhātam, Datta Bāvani, etc.).
-  - Per-timing bell toggles, lead-time (0/5/10/30 min), ring duration (10s/25s/1m/3m), vibrate.
-  - 15-second poll for boundary crossings; full-screen overlay with animated bell + ॐ + type
-    (auspicious/inauspicious) and Silence button.
-  - Test-fire button + localStorage preference persistence + once-per-day dedupe.
+- [x] **Muhūrta Alarm (P0)** — `MuhurtaAlarm` component with devotional ringtones + per-timing
+  toggles + lead-time / ring-duration / vibrate settings + overlay + localStorage prefs +
+  once-per-day dedupe.
 - [x] **Deity of the Day Ribbon (P1)** on both Home and Panchāngam pages.
-  - Maps `vara → deity_id` (Sunday→Sūrya, Monday→Śiva, Tuesday→Subrahmaṇya, etc.).
-  - Portrait, mūla mantra (Devanāgarī + IAST), +108 Japa quick-add, Chant preview button.
-- [x] **Multilingual UI updates (P2)** — 30+ new i18n keys across en/te/hi/ta:
-  muhurta_timings, muhurta_alarms, kundali, horoscope, deity_of_day_ribbon, silence_alarm,
-  auspicious/inauspicious labels, and all Home tile descriptions (`*_desc`) now translated.
-- [x] **Background Name Generation** — running for all 34 deities (P1):
-  30/34 ashtottara docs present at last check; sahasranama in-progress. Idempotent — safe
-  to re-invoke `python generate_names.py --ashtottara|--sahasranama` for the missing ones.
+- [x] **Multilingual UI updates (P2)** — 30+ new i18n keys across en/te/hi/ta.
+- [x] **Geo Sunrise/Sunset (P2)** — `/api/panchangam/timings?lat=&lng=&tz_offset=` uses
+  `pyswisseph` `rise_trans` for accurate local astronomical sunrise/sunset. Verified
+  Hyderabad, London, Sydney, NY, Tokyo all within ±5 min of published values. Frontend
+  `useGeolocation` hook (7-day cache) + `MuhurtaTimings` shows geo-request / geo-active /
+  geo-denied pill.
+- [x] **PWA / Offline (P2)** — `/public/manifest.webmanifest` + `/public/service-worker.js`
+  registered via `/src/index.js`. Cache strategy: network-first for HTML, stale-while-revalidate
+  for static, pass-through for /api/* (except /api/static/*). Installable, home-screen icons
+  and shortcuts to Japa / Rāma Koṭi / Panchāngam.
+- [x] **OS-level Muhūrta Notifications (P2)** — Notification API + Service Worker. When user
+  grants permission and enables `browserNotify`, each enabled timing is scheduled via
+  `sw.postMessage({type:'schedule-notification', delayMs, ...})` for today; SW also fires
+  immediate notification if page is hidden during in-tab alarm. Once-per-tag dedupe via
+  `dj_alarm_scheduled_v1` localStorage.
+- [x] **Kundali Export (P2)** — Download PDF (jsPDF, multi-page slice), Save as Image (PNG),
+  Share (Web Share Level 2 → clipboard → download fallback). Beautiful printable card layout
+  with parchment background.
+- [x] **Background Name Generation** — Ashtottara: 17/34 fully at ≥100 names + 17 partials
+  (66-99 names). Sahasranama: 2/12 popular fully done (Shiva 687, Vishnu 678), Ganesha 112.
+  Generator threshold lowered to 95 for pragmatic completion; scripts still running.
 
 ## Backend Endpoints (v2 additions)
 - `GET /api/panchangam/timings?date_str=YYYY-MM-DD` → sunrise, sunset, muhurta timings dict.

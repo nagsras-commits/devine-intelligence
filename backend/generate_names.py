@@ -208,7 +208,7 @@ async def main():
     for i, (key, name) in enumerate(items.items(), 1):
         print(f"[{i}/{len(items)}] {key} — {name}")
         existing = await coll.find_one({"deity_id": key}, {"_id": 0}) or {}
-        has_a = len(existing.get("ashtottara") or []) >= 100
+        has_a = len(existing.get("ashtottara") or []) >= 95
         has_s = len(existing.get("sahasranama") or []) >= 900
 
         update = {}

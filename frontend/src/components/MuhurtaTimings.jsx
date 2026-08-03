@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { AlertTriangle, CheckCircle2, Clock, MapPin, Loader2 } from "lucide-react";
 import useGeolocation from "@/hooks/useGeolocation";
@@ -31,12 +31,12 @@ export default function MuhurtaTimings() {
   const [data, setData] = useState(null);
   const [, setTick] = useState(0);
 
-  const load = () => {
+  const load = useCallback(() => {
     const params = geo.status === "ready" ? { lat: geo.lat, lng: geo.lng, tz_offset: geo.tz_offset } : {};
     axios.get(`${API}/panchangam/timings`, { params }).then((r) => setData(r.data)).catch(() => {});
-  };
+  }, [geo.status, geo.lat, geo.lng, geo.tz_offset]);
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [geo.status, geo.lat, geo.lng]);
+  useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
     const int = setInterval(() => setTick((t) => t + 1), 30000);
