@@ -105,9 +105,9 @@ export default function DeityOfDayRibbon() {
               Deity of the Day — {pan.vara}
             </div>
           </div>
-          <h3 className="mt-1 font-display font-bold text-2xl sm:text-3xl text-gold-shimmer inline-block flex-wrap gap-x-3" style={{ letterSpacing: "0.04em" }}>
-            {enName}
-            <span className="ml-2 font-devanagari text-xl sm:text-2xl align-baseline" style={{
+          <h3 className="mt-1 font-display font-bold text-2xl sm:text-3xl text-gold-shimmer flex flex-wrap items-baseline gap-x-3 gap-y-1" style={{ letterSpacing: "0.04em" }}>
+            <span>{enName}</span>
+            <span className="font-devanagari text-xl sm:text-2xl" style={{
               background: "linear-gradient(120deg, hsl(45 100% 88%), hsl(30 100% 62%), hsl(45 100% 88%))",
               backgroundClip: "text", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
             }}>{saName}</span>

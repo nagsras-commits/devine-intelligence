@@ -138,7 +138,7 @@ export default function MuhurtaAlarm() {
               key={key}
               data-testid={`alarm-toggle-${key}`}
               onClick={() => toggle(key)}
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs gold-border transition ${on ? "bg-[hsl(var(--gold)/0.18)] text-kumkum dark:text-[hsl(var(--gold))]" : "opacity-60 hover:opacity-100"}`}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs gold-border transition ${on ? "bg-gradient-to-r from-[hsl(var(--kumkum)/0.35)] to-[hsl(var(--saffron)/0.25)] text-kumkum dark:text-[hsl(var(--gold))] diya-glow ring-1 ring-[hsl(var(--gold)/0.6)]" : "opacity-55 hover:opacity-100 bg-card"}`}
             >
               {on ? <Bell className="w-3.5 h-3.5" /> : <BellOff className="w-3.5 h-3.5" />}
               <span>{t.label}</span>
