@@ -259,3 +259,194 @@ def compute_kundali(dob: str, time_str: str, lat: float, lng: float, tz_offset_h
             "kaal_sarpa_dosha": kaal_sarpa,
         },
     }
+
+
+# ============================================================================
+# ASHTAKUTA GUNA MILANA — 8-fold Kundali marriage compatibility scoring (36 pts)
+# ============================================================================
+_NAK_VARNA = {  # Brahmin=3, Kshatriya=2, Vaishya=1, Shudra=0 by nakshatra
+    "Ashwini": 3, "Bharani": 0, "Krittika": 1, "Rohini": 3, "Mrigashira": 3, "Ardra": 2,
+    "Punarvasu": 1, "Pushya": 0, "Ashlesha": 2, "Magha": 0, "Purva Phalguni": 2, "Uttara Phalguni": 2,
+    "Hasta": 3, "Chitra": 0, "Swati": 1, "Vishakha": 3, "Anuradha": 0, "Jyeshtha": 1,
+    "Mula": 1, "Purva Ashadha": 3, "Uttara Ashadha": 2, "Shravana": 2, "Dhanishta": 3,
+    "Shatabhisha": 3, "Purva Bhadrapada": 1, "Uttara Bhadrapada": 2, "Revati": 0,
+}
+_VASHYA = {  # 0..5 mapped by rasi index (Mesha..Meena): typical vashya groups
+    0: "quad", 1: "quad", 2: "human", 3: "aquatic", 4: "quad", 5: "human",
+    6: "human", 7: "insect", 8: "quad", 9: "quad", 10: "human", 11: "aquatic",
+}
+_VASHYA_SCORE = {
+    ("human","human"): 2, ("quad","quad"): 2, ("aquatic","aquatic"): 2, ("insect","insect"): 2,
+    ("human","quad"): 1, ("quad","human"): 1, ("human","aquatic"): 0.5, ("aquatic","human"): 0.5,
+    ("quad","aquatic"): 1, ("aquatic","quad"): 1, ("human","insect"): 0.5, ("insect","human"): 0.5,
+}
+_YONI = {  # 14 yoni animals, each nakshatra has one; simplified table (bride/groom)
+    "Ashwini":"horse","Bharani":"elephant","Krittika":"sheep","Rohini":"serpent","Mrigashira":"serpent",
+    "Ardra":"dog","Punarvasu":"cat","Pushya":"sheep","Ashlesha":"cat","Magha":"rat",
+    "Purva Phalguni":"rat","Uttara Phalguni":"cow","Hasta":"buffalo","Chitra":"tiger","Swati":"buffalo",
+    "Vishakha":"tiger","Anuradha":"deer","Jyeshtha":"deer","Mula":"dog","Purva Ashadha":"monkey",
+    "Uttara Ashadha":"mongoose","Shravana":"monkey","Dhanishta":"lion","Shatabhisha":"horse",
+    "Purva Bhadrapada":"lion","Uttara Bhadrapada":"cow","Revati":"elephant",
+}
+_YONI_ENEMIES = {  # simplified enemy pairs (score 0)
+    frozenset({"cow","tiger"}), frozenset({"elephant","lion"}), frozenset({"horse","buffalo"}),
+    frozenset({"dog","deer"}), frozenset({"cat","rat"}), frozenset({"serpent","mongoose"}),
+    frozenset({"monkey","sheep"}),
+}
+_YONI_NEUTRAL = {  # 1 point for neutral pairs (very abbreviated)
+    frozenset({"horse","sheep"}), frozenset({"dog","cat"}), frozenset({"elephant","monkey"}),
+}
+_RASI_LORD = ["Mars","Venus","Mercury","Moon","Sun","Mercury","Venus","Mars","Jupiter","Saturn","Saturn","Jupiter"]
+_GRAHA_FRIENDS = {
+    "Sun": {"Moon","Mars","Jupiter"}, "Moon": {"Sun","Mercury"},
+    "Mars": {"Sun","Moon","Jupiter"}, "Mercury": {"Sun","Venus"},
+    "Jupiter": {"Sun","Moon","Mars"}, "Venus": {"Mercury","Saturn"},
+    "Saturn": {"Mercury","Venus"},
+}
+_GRAHA_ENEMIES = {
+    "Sun": {"Venus","Saturn"}, "Moon": set(), "Mars": {"Mercury"},
+    "Mercury": {"Moon"}, "Jupiter": {"Mercury","Venus"},
+    "Venus": {"Sun","Moon"}, "Saturn": {"Sun","Moon","Mars"},
+}
+_GANA = {  # deva, manushya, rakshasa
+    "Ashwini":"deva","Bharani":"manushya","Krittika":"rakshasa","Rohini":"manushya","Mrigashira":"deva",
+    "Ardra":"manushya","Punarvasu":"deva","Pushya":"deva","Ashlesha":"rakshasa","Magha":"rakshasa",
+    "Purva Phalguni":"manushya","Uttara Phalguni":"manushya","Hasta":"deva","Chitra":"rakshasa","Swati":"deva",
+    "Vishakha":"rakshasa","Anuradha":"deva","Jyeshtha":"rakshasa","Mula":"rakshasa","Purva Ashadha":"manushya",
+    "Uttara Ashadha":"manushya","Shravana":"deva","Dhanishta":"rakshasa","Shatabhisha":"rakshasa",
+    "Purva Bhadrapada":"manushya","Uttara Bhadrapada":"manushya","Revati":"deva",
+}
+_NADI = {  # aadi, madhya, antya (0,1,2)
+    "Ashwini":0,"Bharani":1,"Krittika":2,"Rohini":2,"Mrigashira":1,"Ardra":0,"Punarvasu":0,"Pushya":1,
+    "Ashlesha":2,"Magha":2,"Purva Phalguni":1,"Uttara Phalguni":0,"Hasta":0,"Chitra":1,"Swati":2,
+    "Vishakha":2,"Anuradha":1,"Jyeshtha":0,"Mula":0,"Purva Ashadha":1,"Uttara Ashadha":2,
+    "Shravana":2,"Dhanishta":1,"Shatabhisha":0,"Purva Bhadrapada":0,"Uttara Bhadrapada":1,"Revati":2,
+}
+
+def _rasi_idx(rasi_name: str) -> int:
+    return RASI_NAMES.index(rasi_name) if rasi_name in RASI_NAMES else 0
+
+def _compute_kutas(bride_nak: str, bride_rasi: str, groom_nak: str, groom_rasi: str) -> Dict[str, Any]:
+    b_ri, g_ri = _rasi_idx(bride_rasi), _rasi_idx(groom_rasi)
+
+    # 1. Varna (1 pt): groom's varna >= bride's varna
+    bv, gv = _NAK_VARNA.get(bride_nak, 0), _NAK_VARNA.get(groom_nak, 0)
+    varna = 1 if gv >= bv else 0
+
+    # 2. Vashya (2 pt)
+    v = _VASHYA_SCORE.get((_VASHYA[b_ri], _VASHYA[g_ri]), 0)
+    vashya = float(v)
+
+    # 3. Tara / Dina (3 pt): count from bride nak to groom nak mod 9
+    b_ni = NAKSHATRA_NAMES.index(bride_nak) if bride_nak in NAKSHATRA_NAMES else 0
+    g_ni = NAKSHATRA_NAMES.index(groom_nak) if groom_nak in NAKSHATRA_NAMES else 0
+    tara_b = ((g_ni - b_ni) % 27) % 9
+    tara_g = ((b_ni - g_ni) % 27) % 9
+    # 0,2,4,6,8 = auspicious → 1.5 each; both auspicious = 3
+    tara = (1.5 if tara_b in (0,2,4,6,8) else 0) + (1.5 if tara_g in (0,2,4,6,8) else 0)
+
+    # 4. Yoni (4 pt)
+    by, gy = _YONI.get(bride_nak,""), _YONI.get(groom_nak,"")
+    if by == gy: yoni = 4
+    elif frozenset({by, gy}) in _YONI_ENEMIES: yoni = 0
+    elif frozenset({by, gy}) in _YONI_NEUTRAL: yoni = 2
+    else: yoni = 3
+
+    # 5. Graha Maitri (5 pt): lord of moon rasi
+    bl, gl = _RASI_LORD[b_ri], _RASI_LORD[g_ri]
+    if bl == gl: gm = 5
+    elif gl in _GRAHA_FRIENDS.get(bl, set()) and bl in _GRAHA_FRIENDS.get(gl, set()): gm = 5
+    elif gl in _GRAHA_FRIENDS.get(bl, set()) or bl in _GRAHA_FRIENDS.get(gl, set()): gm = 4
+    elif gl in _GRAHA_ENEMIES.get(bl, set()) and bl in _GRAHA_ENEMIES.get(gl, set()): gm = 0
+    elif gl in _GRAHA_ENEMIES.get(bl, set()) or bl in _GRAHA_ENEMIES.get(gl, set()): gm = 1
+    else: gm = 3
+
+    # 6. Gana (6 pt)
+    bg, gg = _GANA.get(bride_nak,"deva"), _GANA.get(groom_nak,"deva")
+    if bg == gg: gana = 6
+    elif {bg, gg} == {"deva","manushya"}: gana = 5
+    elif {bg, gg} == {"manushya","rakshasa"}: gana = 1
+    else: gana = 0
+
+    # 7. Bhakoot / Rasi (7 pt): count 12 - 6/8, 5/9, 2/12
+    diff = (g_ri - b_ri) % 12
+    bad = { (6-1) % 12, (8-1) % 12, (5-1) % 12, (9-1) % 12, (2-1) % 12, (12-1) % 12 }
+    if diff in {6, 8, 5, 9, 2, 12 % 12}:
+        # 6/8 and 2/12 and 5/9 pairs
+        pass
+    if diff in {6, 8}: bhakoot = 0
+    elif diff in {5, 9}: bhakoot = 0
+    elif diff in {2, 10}: bhakoot = 0
+    else: bhakoot = 7
+
+    # 8. Nadi (8 pt): different nadi → 8, same nadi → 0 (dosha)
+    nadi = 8 if _NADI.get(bride_nak,0) != _NADI.get(groom_nak,0) else 0
+
+    total = varna + vashya + tara + yoni + gm + gana + bhakoot + nadi
+    return {
+        "varna":     {"score": varna,   "max": 1, "desc": "Spiritual compatibility (groom's varna ≥ bride's)"},
+        "vashya":    {"score": vashya,  "max": 2, "desc": "Dominance & mutual attraction"},
+        "tara":      {"score": tara,    "max": 3, "desc": "Health & longevity (birth-star fortune)"},
+        "yoni":      {"score": yoni,    "max": 4, "desc": "Sexual & instinctual harmony"},
+        "graha_maitri": {"score": gm,   "max": 5, "desc": "Mental & spiritual friendship of ruling planets"},
+        "gana":      {"score": gana,    "max": 6, "desc": "Temperament (deva/manushya/rakshasa)"},
+        "bhakoot":   {"score": bhakoot, "max": 7, "desc": "Rāśi placement & family prosperity"},
+        "nadi":      {"score": nadi,    "max": 8, "desc": "Genetic / progeny compatibility"},
+        "total":     round(total, 1),
+        "max":       36,
+        "verdict":   _match_verdict(total),
+    }
+
+def _match_verdict(total: float) -> str:
+    if total >= 32: return "Excellent — Highly compatible"
+    if total >= 24: return "Very Good — Recommended"
+    if total >= 18: return "Acceptable — Consider carefully"
+    return "Low — Not recommended without remedies"
+
+
+# ============================================================================
+# Panchangam extras: Samvatsara, Ṛtu, Ayana, Māsa
+# ============================================================================
+_SAMVATSARA_NAMES = [
+    "Prabhava","Vibhava","Shukla","Pramodyuta","Prajapati","Angirasa","Shrimukha","Bhava","Yuva","Dhata",
+    "Ishvara","Bahudhanya","Pramathi","Vikrama","Vrisha","Chitrabhanu","Svabhanu","Tarana","Parthiva","Vyaya",
+    "Sarvajit","Sarvadhari","Virodhi","Vikriti","Khara","Nandana","Vijaya","Jaya","Manmatha","Durmukhi",
+    "Hemalambi","Vilambi","Vikari","Sharvari","Plava","Shubhakrit","Shobhakrit","Krodhi","Vishvavasu","Parabhava",
+    "Plavanga","Kilaka","Saumya","Sadharana","Virodhikrit","Paridhavi","Pramadi","Ananda","Rakshasa","Nala",
+    "Pingala","Kalayukti","Siddharthi","Raudra","Durmati","Dundubhi","Rudhirodgari","Raktakshi","Krodhana","Akshaya",
+]
+_RITU_NAMES = ["Vasanta (Spring)","Grishma (Summer)","Varsha (Monsoon)","Sharad (Autumn)","Hemanta (Pre-winter)","Shishira (Winter)"]
+_MASA_NAMES = ["Chaitra","Vaishakha","Jyeshtha","Ashadha","Shravana","Bhadrapada","Ashvin","Kartika","Margashirsha","Pausha","Magha","Phalguna"]
+
+def panchangam_extras(d: date_cls) -> Dict[str, Any]:
+    """Return samvatsara (60-year cycle), Vikrama & Shaka years, ritu, ayana, masa."""
+    year = d.year
+    # Vikrama Samvat = CE + 57 (from Chaitra); Shaka = CE - 78
+    vikrama = year + 57 if d.month >= 4 else year + 56
+    shaka = year - 78 if d.month >= 4 else year - 79
+    # Samvatsara: cycle indexed from Shaka era offset ~ (Shaka - 4) mod 60 for Prabhava
+    samv_idx = (shaka + 12) % 60
+    # Ritu: 6 seasons of 2 months each starting Chaitra (~ mid-March)
+    # Solar rāśi approximation: month of Chaitra begins ~ March 22 (Mesha)
+    ritu_map = [
+        (3, 22, 0), (5, 22, 1), (7, 22, 2), (9, 23, 3), (11, 22, 4), (1, 20, 5),  # approx sun sign starts
+    ]
+    ritu_idx = 5  # default winter
+    for m, day, ri in ritu_map:
+        if (d.month, d.day) >= (m, day): ritu_idx = ri
+    # Ayana: Uttarayana ~ Jan 14 (Makara Sankranti) to Jul 16
+    if (d.month, d.day) >= (1, 14) and (d.month, d.day) < (7, 16):
+        ayana = "Uttarāyaṇa"
+    else:
+        ayana = "Dakṣiṇāyana"
+    # Masa: approximate Chaitra starts mid-Mar; each lunar month spans ~30d
+    m_idx = (d.month + 8) % 12  # Chaitra = index 0 aligns with March
+    return {
+        "samvatsara": _SAMVATSARA_NAMES[samv_idx],
+        "samvatsara_index": samv_idx + 1,
+        "vikrama_samvat": vikrama,
+        "shaka_samvat": shaka,
+        "ritu": _RITU_NAMES[ritu_idx],
+        "ayana": ayana,
+        "masa": _MASA_NAMES[m_idx],
+    }

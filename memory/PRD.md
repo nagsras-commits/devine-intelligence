@@ -117,7 +117,41 @@ Additional user requests:
 - Streaming Kundali AI reading (currently 25-30s blocking).
 - Free-form place input with geocoder for Kundali (currently 18-city dropdown).
 
-## Test Results (iteration_2)
+### 2026-08-12 (Kundali Match + Sanskrit Almanac + Voice Sloka + Festival Push + Aarti Timer)
+- [x] **Kundali Match — Aṣṭakūṭa Guṇa Milāna (P1)**. New backend
+  `POST /api/kundali/match` computes 8 kūṭas (Varṇa 1 / Vaśya 2 / Tāra 3 / Yoni 4 /
+  Graha Maitri 5 / Gaṇa 6 / Bhakoot 7 / Nāḍī 8) totalling 36 with a verdict band.
+  Frontend `KundaliMatch.jsx` with dual bride/groom form, color-coded kuta bars,
+  and PNG/PDF export via html2canvas + jsPDF. Mounted as a 5th quick-jump section
+  on `/panchangam`.
+- [x] **Sanskrit Panchangam (P1)** — `panchangam_extras(d)` adds Samvatsara (60-year
+  Prabhava cycle), Vikrama Saṁvat, Śaka Saṁvat, Ṛtu (6 seasons), Ayana (Uttarāyaṇa/
+  Dakṣiṇāyana), Māsa (lunar month) to both `/api/panchangam` and `/api/panchangam/week`.
+  Frontend renders a "Traditional Almanac" block below the daily card.
+- [x] **Voice Sloka Reader (P2)** — `VoiceSlokaReader.jsx` uses SpeechSynthesis with
+  Indic-voice preference (hi-IN) + `onboundary` word-index tracking to karaoke-highlight
+  each Devanāgarī word as it's chanted. Auto-ducks the background chant during narration.
+  Mounted inside every `SlokaCard`, so every sloka across Dinacharya / Nitya Pooja /
+  Tulasi Pooja / deity detail can now be read aloud.
+- [x] **Festival Push (P2)** — `FestivalPushOptIn.jsx` iterates `FESTIVALS`, computes
+  next-year fallback if a festival has passed, and schedules an OS notification at
+  6 PM the evening before every major festival via the existing SW postMessage protocol.
+  Shows upcoming list, permission-aware CTA, and a "Send test" button.
+- [x] **Home Aarti Timer (P2)** — `AartiTimer.jsx` with 3 presets (Morning 5m / Evening 7m
+  / Quick 3m). Animated SVG diya with a flickering flame and halo glow; synthesised
+  bell (Web Audio API, two-oscillator harmonic decay) rings at preset intervals; a
+  final triple-bell on completion; volume slider. Mounted on `/` above the Explore grid,
+  side-by-side with FestivalPushOptIn.
+
+## Test Results (iteration_4)
+- Backend: **10/10 pytest pass** — panchangam extras, kundali/match happy path,
+  validation errors, dosha edge cases. All API contracts held.
+- Frontend: **100% of specified flows pass** — Aarti Timer presets/start/pause/reset,
+  Festival opt-in states, Panchangam almanac fields (Plavanga / Shravana / Shishira /
+  Dakṣiṇāyana / 2083 / 1948 for Aug 2026), Kundali Match (Sita ⚭ Ram → 23.5/36
+  "Acceptable — Consider carefully"), PNG/PDF export, karaoke sloka reader (no errors).
+- Only cosmetic P3: spec-vs-impl naming difference on one quick-jump testid — no bug.
+
 - Backend: **15/15 pytest pass** — panchangam, timings, kundali (incl. 422 validation),
   horoscope (Mesha/Vrishabha/Mithuna), deity names.
 - Frontend: **100% of specified flows** — 4-tab Panchāngam, Muhūrta timings + alarm

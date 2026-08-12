@@ -8,6 +8,8 @@ import { DEITIES } from "@/data/deities";
 import { FESTIVALS } from "@/data/festivals";
 import DeityImage from "@/components/DeityImage";
 import DeityOfDayRibbon from "@/components/DeityOfDayRibbon";
+import AartiTimer from "@/components/AartiTimer";
+import FestivalPushOptIn from "@/components/FestivalPushOptIn";
 import { ArrowRight, Sunrise, CalendarDays, Sparkles, Flame, Hash, PenLine } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -93,6 +95,12 @@ export default function Home() {
             </Link>
           </div>
         </div>
+      </section>
+
+      {/* Aarti Timer + Festival Reminders — daily-ritual companion */}
+      <section className="grid lg:grid-cols-2 gap-6" data-testid="daily-companion">
+        <AartiTimer />
+        <FestivalPushOptIn />
       </section>
 
       {/* EXPLORE — icon grid of every page */}

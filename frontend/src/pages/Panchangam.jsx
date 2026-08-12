@@ -2,11 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useApp } from "@/context/AppContext";
 import { t } from "@/lib/i18n";
-import { Sun, CalendarDays, Clock, Star, Sunrise } from "lucide-react";
+import { Sun, CalendarDays, Clock, Star, Sunrise, Heart } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import MuhurtaTimings from "@/components/MuhurtaTimings";
 import MuhurtaAlarm from "@/components/MuhurtaAlarm";
 import KundaliMaker from "@/components/KundaliMaker";
+import KundaliMatch from "@/components/KundaliMatch";
 import DailyHoroscope from "@/components/DailyHoroscope";
 import DeityOfDayRibbon from "@/components/DeityOfDayRibbon";
 
@@ -16,6 +17,7 @@ const SECTIONS = [
   { id: "panchangam", label: "Panchāngam", icon: CalendarDays },
   { id: "muhurta",    label: "Muhūrta & Alarms", icon: Clock },
   { id: "kundali",    label: "Kundali",    icon: Star },
+  { id: "match",      label: "Kundali Match", icon: Heart },
   { id: "horoscope",  label: "Horoscope",  icon: Sunrise },
 ];
 
@@ -28,6 +30,7 @@ export default function Panchangam() {
     panchangam: useRef(null),
     muhurta: useRef(null),
     kundali: useRef(null),
+    match: useRef(null),
     horoscope: useRef(null),
   };
 
@@ -154,6 +157,35 @@ export default function Panchangam() {
                   </div>
                 ))}
               </div>
+
+              {/* Samvatsara / Ritu / Ayana / Masa — traditional almanac fields */}
+              {(selected.samvatsara || selected.ritu || selected.ayana) && (
+                <div className="mt-4 rounded-xl p-3 gold-border bg-gradient-to-r from-[hsl(var(--gold)/0.08)] to-[hsl(var(--saffron)/0.05)]" data-testid="panch-almanac">
+                  <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-2">
+                    Traditional Almanac
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-2 text-sm">
+                    {selected.samvatsara && (
+                      <div><span className="text-[10px] uppercase tracking-widest text-muted-foreground block">Samvatsara</span><span className="font-medium">{selected.samvatsara}</span></div>
+                    )}
+                    {selected.masa && (
+                      <div><span className="text-[10px] uppercase tracking-widest text-muted-foreground block">Māsa</span><span className="font-medium">{selected.masa}</span></div>
+                    )}
+                    {selected.ritu && (
+                      <div><span className="text-[10px] uppercase tracking-widest text-muted-foreground block">Ṛtu</span><span className="font-medium">{selected.ritu}</span></div>
+                    )}
+                    {selected.ayana && (
+                      <div><span className="text-[10px] uppercase tracking-widest text-muted-foreground block">Ayana</span><span className="font-medium">{selected.ayana}</span></div>
+                    )}
+                    {selected.vikrama_samvat && (
+                      <div><span className="text-[10px] uppercase tracking-widest text-muted-foreground block">Vikrama Saṁvat</span><span className="font-medium">{selected.vikrama_samvat}</span></div>
+                    )}
+                    {selected.shaka_samvat && (
+                      <div><span className="text-[10px] uppercase tracking-widest text-muted-foreground block">Śaka Saṁvat</span><span className="font-medium">{selected.shaka_samvat}</span></div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="sacred-card grain">
@@ -179,6 +211,11 @@ export default function Panchangam() {
       {/* Kundali section */}
       <div ref={refs.kundali} data-section="kundali" id="kundali" className="scroll-mt-24 pt-4" data-testid="section-kundali">
         <KundaliMaker />
+      </div>
+
+      {/* Kundali Match section */}
+      <div ref={refs.match} data-section="match" id="match" className="scroll-mt-24 pt-4" data-testid="section-match">
+        <KundaliMatch />
       </div>
 
       {/* Horoscope section */}

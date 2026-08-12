@@ -2,6 +2,7 @@ import React from "react";
 import { useApp } from "@/context/AppContext";
 import { pickLang, t } from "@/lib/i18n";
 import { Play, Pause } from "lucide-react";
+import VoiceSlokaReader from "@/components/VoiceSlokaReader";
 
 /**
  * SlokaCard — displays sanskrit + transliteration + meaning in current language.
@@ -69,6 +70,15 @@ export default function SlokaCard({ sloka, translit, meaning, audio, title, subt
             {pickLang(meaning, lang)}
           </p>
         </div>
+      )}
+
+      {/* Voice narration with karaoke word highlighting */}
+      {sloka && !dense && (
+        <VoiceSlokaReader
+          text={sloka}
+          meaning={meaning ? pickLang(meaning, lang === "sa" ? "en" : lang) : ""}
+          langHint="hi-IN"
+        />
       )}
     </div>
   );

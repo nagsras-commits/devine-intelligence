@@ -200,13 +200,15 @@ async def get_panchangam(date_str: Optional[str] = None):
             raise HTTPException(400, "date must be YYYY-MM-DD")
     else:
         d = date.today()
-    return compute_panchangam(d)
+    from astrology import panchangam_extras
+    return {**compute_panchangam(d), **panchangam_extras(d)}
 
 
 @api_router.get("/panchangam/week")
 async def get_week_panchangam():
+    from astrology import panchangam_extras
     today = date.today()
-    return [compute_panchangam(today + timedelta(days=i)) for i in range(7)]
+    return [{**compute_panchangam(today + timedelta(days=i)), **panchangam_extras(today + timedelta(days=i))} for i in range(7)]
 
 
 # --- Bookmarks (simple, no auth) ---
@@ -577,6 +579,35 @@ async def get_saved_kundali(request: Request):
     if not doc:
         raise HTTPException(404, "No kundali saved")
     return doc
+
+
+class MatchPerson(BaseModel):
+    name: Optional[str] = None
+    dob: str
+    time: str
+    place: str
+    lat: float
+    lng: float
+    tz_offset: float = 5.5
+
+
+class KundaliMatchRequest(BaseModel):
+    bride: MatchPerson
+    groom: MatchPerson
+
+
+@api_router.post("/kundali/match")
+async def kundali_match(payload: KundaliMatchRequest):
+    """Compute Aṣṭakūṭa Guṇa Milāna score between bride and groom."""
+    from astrology import _compute_kutas
+    b_chart = compute_kundali(payload.bride.dob, payload.bride.time, payload.bride.lat, payload.bride.lng, payload.bride.tz_offset)
+    g_chart = compute_kundali(payload.groom.dob, payload.groom.time, payload.groom.lat, payload.groom.lng, payload.groom.tz_offset)
+    result = _compute_kutas(b_chart["janma_nakshatra"], b_chart["janma_rasi"], g_chart["janma_nakshatra"], g_chart["janma_rasi"])
+    return {
+        "bride":  {"name": payload.bride.name, "janma_rasi": b_chart["janma_rasi"], "janma_nakshatra": b_chart["janma_nakshatra"]},
+        "groom":  {"name": payload.groom.name, "janma_rasi": g_chart["janma_rasi"], "janma_nakshatra": g_chart["janma_nakshatra"]},
+        "kutas":  result,
+    }
 
 
 @api_router.get("/horoscope")
