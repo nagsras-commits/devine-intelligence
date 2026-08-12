@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useApp } from "@/context/AppContext";
 import { t } from "@/lib/i18n";
-import { Sun, CalendarDays, Clock, Star, Sunrise, Heart } from "lucide-react";
+import { Sun, CalendarDays, Clock, Star, Sunrise, Heart, ChevronLeft, ChevronRight, CalendarClock, RotateCcw } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import MuhurtaTimings from "@/components/MuhurtaTimings";
 import MuhurtaAlarm from "@/components/MuhurtaAlarm";
@@ -25,7 +25,9 @@ export default function Panchangam() {
   const { lang } = useApp();
   const [week, setWeek] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [anchor, setAnchor] = useState(() => new Date().toISOString().slice(0, 10)); // date the week is centred around
   const [activeSec, setActiveSec] = useState("panchangam");
+  const [loadingDate, setLoadingDate] = useState(false);
   const refs = {
     panchangam: useRef(null),
     muhurta: useRef(null),
@@ -34,12 +36,46 @@ export default function Panchangam() {
     horoscope: useRef(null),
   };
 
-  useEffect(() => {
-    axios.get(`${API}/panchangam/week`).then((r) => {
-      setWeek(r.data);
-      setSelected(r.data[0]);
-    });
-  }, []);
+  const fetchDate = async () => {}; // reserved
+
+  // Load a week strip that starts from `anchor - 3 days` so anchor sits in the middle
+  const loadWeek = async (dateStr) => {
+    const start = new Date(dateStr);
+    start.setDate(start.getDate() - 3);
+    const promises = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(start); d.setDate(start.getDate() + i);
+      const s = d.toISOString().slice(0, 10);
+      promises.push(axios.get(`${API}/panchangam`, { params: { date_str: s } }).then((r) => r.data));
+    }
+    try {
+      const days = await Promise.all(promises);
+      setWeek(days);
+      // Select the anchor day
+      const target = days.find((d) => d.date === dateStr) || days[3];
+      setSelected(target);
+    } catch (e) { /* ignore */ }
+  };
+
+  useEffect(() => { loadWeek(anchor); /* eslint-disable-next-line */ }, [anchor]);
+
+  const shiftAnchor = (days) => {
+    const d = new Date(anchor); d.setDate(d.getDate() + days);
+    setAnchor(d.toISOString().slice(0, 10));
+  };
+
+  const jumpToToday = () => {
+    const t = new Date().toISOString().slice(0, 10);
+    setAnchor(t);
+  };
+
+  const setDateFromInput = (v) => {
+    if (!v) return;
+    setAnchor(v);
+  };
+
+  const isToday = anchor === new Date().toISOString().slice(0, 10);
+  void fetchDate; void loadingDate;
 
   // Track scroll to highlight the active section chip
   useEffect(() => {
@@ -103,12 +139,89 @@ export default function Panchangam() {
 
       {/* All sections rendered in one frame */}
       <div ref={refs.panchangam} data-section="panchangam" id="panchangam" className="space-y-4 scroll-mt-24" data-testid="section-panchangam">
+        {/* Date navigator — pick any date, any year */}
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl p-3 gold-border bg-[hsl(var(--gold)/0.05)]" data-testid="date-navigator">
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => shiftAnchor(-7)}
+              data-testid="date-prev-week"
+              title="Previous week"
+              className="w-8 h-8 grid place-items-center rounded-full gold-border hover:bg-[hsl(var(--gold)/0.15)]"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => shiftAnchor(-1)}
+              data-testid="date-prev-day"
+              className="rounded-full px-3 py-1.5 text-xs gold-border hover:bg-[hsl(var(--gold)/0.15)]"
+            >
+              -1 day
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 flex-1 min-w-[240px]">
+            <CalendarClock className="w-4 h-4 text-saffron shrink-0" />
+            <input
+              type="date"
+              value={anchor}
+              onChange={(e) => setDateFromInput(e.target.value)}
+              data-testid="date-picker"
+              min="1900-01-01"
+              max="2100-12-31"
+              className="rounded-lg px-3 py-2 gold-border bg-card text-sm flex-1 max-w-[220px]"
+              aria-label="Pick any date"
+            />
+            <input
+              type="number"
+              value={new Date(anchor).getFullYear()}
+              onChange={(e) => {
+                const y = parseInt(e.target.value || "0", 10);
+                if (!y || y < 1000 || y > 3000) return;
+                const d = new Date(anchor); d.setFullYear(y);
+                setAnchor(d.toISOString().slice(0, 10));
+              }}
+              data-testid="date-year"
+              className="rounded-lg px-2 py-2 gold-border bg-card text-sm w-24"
+              aria-label="Jump to year"
+              min="1900"
+              max="2100"
+            />
+          </div>
+
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => shiftAnchor(1)}
+              data-testid="date-next-day"
+              className="rounded-full px-3 py-1.5 text-xs gold-border hover:bg-[hsl(var(--gold)/0.15)]"
+            >
+              +1 day
+            </button>
+            <button
+              onClick={() => shiftAnchor(7)}
+              data-testid="date-next-week"
+              title="Next week"
+              className="w-8 h-8 grid place-items-center rounded-full gold-border hover:bg-[hsl(var(--gold)/0.15)]"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            {!isToday && (
+              <button
+                onClick={jumpToToday}
+                data-testid="date-today"
+                className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs bg-gradient-to-r from-[hsl(var(--kumkum))] to-[hsl(var(--saffron))] text-white diya-glow hover:opacity-90 ml-1"
+              >
+                <RotateCcw className="w-3 h-3" /> Today
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Week strip */}
         <div className="flex gap-2 overflow-x-auto pb-2">
           {week.map((d) => (
             <button
               key={d.date}
-              onClick={() => setSelected(d)}
+              onClick={() => { setSelected(d); setAnchor(d.date); }}
               data-testid={`day-${d.date}`}
               className={`shrink-0 px-4 py-3 rounded-2xl min-w-[120px] text-left transition-all border ${
                 selected?.date === d.date
