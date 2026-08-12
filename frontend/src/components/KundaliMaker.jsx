@@ -55,6 +55,18 @@ export default function KundaliMaker() {
         place: city.label, lat: city.lat, lng: city.lng, tz_offset: city.tz,
       }, { withCredentials: true });
       setResult(data);
+      // Persist essential info so other components (Horoscope) can link
+      try {
+        localStorage.setItem("dj_kundali_result", JSON.stringify({
+          name: form.name || null,
+          dob: form.dob, time: form.time, place: city.label,
+          janma_rasi: data.chart.janma_rasi,
+          janma_nakshatra: data.chart.janma_nakshatra,
+          lagna: data.chart.lagna,
+          at: Date.now(),
+        }));
+        window.dispatchEvent(new CustomEvent("dj-kundali-updated"));
+      } catch (e) { /* ignore */ }
     } catch (e) {
       setErr(e?.response?.data?.detail || String(e));
     } finally {
