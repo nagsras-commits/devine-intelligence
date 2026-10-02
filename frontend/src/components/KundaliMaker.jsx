@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
 import { Star, Loader2, ChevronDown, User, MapPin, Sparkles, Download, Share2, Image as ImageIcon } from "lucide-react";
+import RashiChart from "@/components/RashiChart";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const KEY = "dj_kundali_input";
@@ -315,6 +316,9 @@ export default function KundaliMaker() {
                 Kāla-Sarpa Dosha: {result.chart.doshas.kaal_sarpa_dosha ? "Present" : "Absent"}
               </span>
             </div>
+
+            {/* Rāśi Chakra (South Indian) */}
+            <RashiChart planets={result.chart.planets} lagnaRasi={result.chart.lagna.rasi} />
 
             {/* Planets */}
             <div className="rounded-lg gold-border p-3 bg-card">

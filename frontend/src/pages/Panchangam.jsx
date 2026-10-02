@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useApp } from "@/context/AppContext";
 import { t } from "@/lib/i18n";
-import { Sun, CalendarDays, Clock, Star, Sunrise, Heart, ChevronLeft, ChevronRight, CalendarClock, RotateCcw } from "lucide-react";
+import { Sun, CalendarDays, Clock, Star, Sunrise, Heart, ChevronLeft, ChevronRight, CalendarClock, RotateCcw, Cake } from "lucide-react";
 import PageHero from "@/components/PageHero";
 import MuhurtaTimings from "@/components/MuhurtaTimings";
 import MuhurtaAlarm from "@/components/MuhurtaAlarm";
@@ -76,6 +76,32 @@ export default function Panchangam() {
 
   const isToday = anchor === new Date().toISOString().slice(0, 10);
   void fetchDate; void loadingDate;
+
+  // Read birthday from persisted Kundali
+  const [birthday, setBirthday] = useState(null);
+  useEffect(() => {
+    const readBday = () => {
+      try {
+        const k = JSON.parse(localStorage.getItem("dj_kundali_result") || "null");
+        setBirthday(k?.dob || null);
+      } catch { setBirthday(null); }
+    };
+    readBday();
+    window.addEventListener("dj-kundali-updated", readBday);
+    const storage = (e) => { if (e.key === "dj_kundali_result") readBday(); };
+    window.addEventListener("storage", storage);
+    return () => {
+      window.removeEventListener("dj-kundali-updated", readBday);
+      window.removeEventListener("storage", storage);
+    };
+  }, []);
+
+  // Jump to the user's birthday (or a random one, sliced to same month-day if birthday in past)
+  const jumpToBirthday = () => {
+    if (!birthday) { jump("kundali"); return; }
+    setAnchor(birthday);
+    setTimeout(() => jump("panchangam"), 100);
+  };
 
   // Track scroll to highlight the active section chip
   useEffect(() => {
@@ -213,6 +239,18 @@ export default function Panchangam() {
                 <RotateCcw className="w-3 h-3" /> Today
               </button>
             )}
+            <button
+              onClick={jumpToBirthday}
+              data-testid="date-birthday"
+              title={birthday ? `Jump to ${birthday}` : "Generate your Kundali to enable this"}
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs ml-1 ${
+                birthday
+                  ? "gold-border hover:bg-[hsl(var(--gold)/0.15)]"
+                  : "opacity-60 gold-border"
+              }`}
+            >
+              <Cake className="w-3 h-3" /> {birthday ? "My Birthday" : "My Birthday…"}
+            </button>
           </div>
         </div>
 

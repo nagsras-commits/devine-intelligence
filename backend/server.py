@@ -118,10 +118,13 @@ def compute_panchangam(d: date) -> Dict[str, Any]:
     epoch = date(2000, 1, 6)
     days = (d - epoch).days
 
-    tithi_idx = int((days * 12) % 30)
-    nak_idx = int((days * 13) % 27)
-    yoga_idx = int((days * 11) % 27)
-    karana_idx = int((days * 2) % 7)
+    # Astronomical cycles: lunar month ≈ 29.53d (30 tithis), sidereal month ≈ 27.32d (27 nakshatras),
+    # yoga cycle ≈ same as sidereal, karana = half of a tithi.
+    tithi_progress = (days * 30.0) / 29.530588
+    tithi_idx = int(tithi_progress) % 30
+    nak_idx = int((days * 27.0) / 27.32166) % 27
+    yoga_idx = int((days * 27.0) / 27.0) % 27  # yoga cycles roughly daily
+    karana_idx = int(tithi_progress * 2) % 7  # 7 rotating karanas (simplified)
     vara_idx = d.weekday()  # Mon=0
     # Map python weekday (Mon=0..Sun=6) to Vara (Sun=0..Sat=6)
     vara_sun_idx = (vara_idx + 1) % 7
@@ -202,6 +205,71 @@ async def get_panchangam(date_str: Optional[str] = None):
         d = date.today()
     from astrology import panchangam_extras
     return {**compute_panchangam(d), **panchangam_extras(d)}
+
+
+@api_router.get("/vrata/upcoming")
+async def upcoming_vratas(days: int = 60):
+    days = max(1, min(days, 180))
+    today = date.today()
+    out = []
+    KRISHNA = {"paksha": "Krishna Paksha", "shift": 15}
+    for i in range(days):
+        d = today + timedelta(days=i)
+        p = compute_panchangam(d)
+        # tithi_number: 1..15 within paksha
+        tn = p.get("tithi_number", 0)
+        paksha = p.get("paksha", "")
+        vratas_today = []
+        if tn == 11:
+            vratas_today.append({
+                "vrata": "Ekādaśī", "sanskrit": "एकादशी",
+                "deity": "Vishnu",
+                "vidhi": "Fast (full or fruit-only), stay awake in bhajan/dhyāna, chant Viṣṇu Sahasranāma.",
+                "prasad": "Panchāmṛta, tulasi leaf, fruits, sabudana khichdi.",
+                "significance": "Sacred to Śrī Viṣṇu. Fasting purifies body and mind; grants mokṣa.",
+            })
+        if tn == 13:
+            vratas_today.append({
+                "vrata": "Pradoṣam", "sanskrit": "प्रदोषम्",
+                "deity": "Shiva",
+                "vidhi": "Fast till twilight (pradoṣa kāla). Perform Śiva abhiṣeka with milk, bilva leaves, water. Chant Mahā Mṛtyuñjaya 108 times.",
+                "prasad": "Bilva patra water, coconut, banana, kheer.",
+                "significance": "Dedicated to Lord Śiva; removes sins accumulated over lifetimes.",
+            })
+        if paksha == "Krishna Paksha" and tn == 4:
+            vratas_today.append({
+                "vrata": "Sankaṣṭī Chaturthī", "sanskrit": "सङ्कष्टी चतुर्थी",
+                "deity": "Ganesha",
+                "vidhi": "Fast until moonrise. Offer 21 durvā (grass) blades and modaks to Gaṇeśa. Chant Gaṇapati Atharvashīrṣa.",
+                "prasad": "Modak, laddu, coconut, durvā.",
+                "significance": "Removes obstacles (sankaṭa) and blesses success in undertakings.",
+            })
+        if tn == 15 and paksha == "Shukla Paksha":
+            vratas_today.append({
+                "vrata": "Pūrṇimā", "sanskrit": "पूर्णिमा",
+                "deity": "Satyanārāyaṇa / Full-moon deities",
+                "vidhi": "Satyanārāyaṇa vrat kathā, moon offering (arghya), donate to brahmins.",
+                "prasad": "Sheera / halwa, banana, panchāmṛta.",
+                "significance": "Auspicious for wealth, health & harmonious family.",
+            })
+        if tn == 15 and paksha == "Krishna Paksha":
+            vratas_today.append({
+                "vrata": "Amāvāsyā", "sanskrit": "अमावस्या",
+                "deity": "Pitṛs / Ancestors",
+                "vidhi": "Perform tarpaṇ / śrāddha for ancestors. Bathe in a river or with holy water.",
+                "prasad": "Rice-sesame balls, milk, offer to crows.",
+                "significance": "Best day for pitṛ tarpaṇa; ancestors bless the family.",
+            })
+        for v in vratas_today:
+            out.append({
+                "date": d.isoformat(),
+                "vara": p.get("vara"),
+                "tithi": p.get("tithi"),
+                "paksha": paksha,
+                "day_offset": i,
+                **v,
+            })
+    return {"days_scanned": days, "count": len(out), "vratas": out}
 
 
 @api_router.get("/panchangam/week")
@@ -424,6 +492,131 @@ async def sync_sadhana(request: Request, payload: SadhanaPayload):
         "likhita_counts": new_doc["likhita_counts"],
         "ritual_streak": new_doc["ritual_streak"],
     }
+
+
+# =============================================================================
+# FAMILY / HOUSEHOLD SADHANA — Shared counters across a household
+# =============================================================================
+import secrets
+import string
+
+def _new_household_code() -> str:
+    """6-char uppercase alphanumeric code, avoiding confusables."""
+    alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    return "".join(secrets.choice(alphabet) for _ in range(6))
+
+
+class HouseholdCreate(BaseModel):
+    name: str
+
+
+class HouseholdContribute(BaseModel):
+    deity_id: str
+    japa: int = 0
+    likhita: int = 0
+
+
+@api_router.post("/household/create")
+async def household_create(payload: HouseholdCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(401, "Sign in to create a family sādhanā")
+    # Ensure unique code
+    for _ in range(10):
+        code = _new_household_code()
+        if not await db.households.find_one({"code": code}):
+            break
+    else:
+        raise HTTPException(500, "Could not generate a unique household code")
+    doc = {
+        "household_id": str(uuid.uuid4()),
+        "name": payload.name.strip()[:60] or "Our Family Sādhanā",
+        "code": code,
+        "owner_id": user["user_id"],
+        "members": [{"user_id": user["user_id"], "name": user.get("name"), "picture": user.get("picture"), "joined_at": datetime.now(timezone.utc).isoformat()}],
+        "japa_counts": {},
+        "likhita_counts": {},
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.households.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.post("/household/join")
+async def household_join(code: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(401, "Sign in to join a family sādhanā")
+    code_up = code.strip().upper()
+    hh = await db.households.find_one({"code": code_up})
+    if not hh:
+        raise HTTPException(404, "No household found for that code")
+    if any(m.get("user_id") == user["user_id"] for m in hh.get("members", [])):
+        hh.pop("_id", None)
+        return hh
+    await db.households.update_one(
+        {"household_id": hh["household_id"]},
+        {"$push": {"members": {"user_id": user["user_id"], "name": user.get("name"), "picture": user.get("picture"), "joined_at": datetime.now(timezone.utc).isoformat()}}}
+    )
+    hh = await db.households.find_one({"household_id": hh["household_id"]}, {"_id": 0})
+    return hh
+
+
+@api_router.get("/household/mine")
+async def household_mine(request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(401, "Sign in")
+    docs = await db.households.find({"members.user_id": user["user_id"]}, {"_id": 0}).to_list(None)
+    return docs
+
+
+@api_router.post("/household/contribute")
+async def household_contribute(payload: HouseholdContribute, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(401, "Sign in")
+    hh = await db.households.find_one({"members.user_id": user["user_id"]}, {"_id": 0})
+    if not hh:
+        raise HTTPException(404, "You have not joined a family sādhanā yet")
+    inc = {}
+    if payload.japa:
+        inc[f"japa_counts.{payload.deity_id}"] = int(payload.japa)
+    if payload.likhita:
+        inc[f"likhita_counts.{payload.deity_id}"] = int(payload.likhita)
+    if not inc:
+        raise HTTPException(400, "Nothing to contribute")
+    await db.households.update_one({"household_id": hh["household_id"]}, {"$inc": inc})
+    # Record per-user contribution history
+    hist = {
+        "household_id": hh["household_id"],
+        "user_id": user["user_id"],
+        "user_name": user.get("name"),
+        "deity_id": payload.deity_id,
+        "japa": int(payload.japa),
+        "likhita": int(payload.likhita),
+        "at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.household_contributions.insert_one(hist)
+    updated = await db.households.find_one({"household_id": hh["household_id"]}, {"_id": 0})
+    return updated
+
+
+@api_router.post("/household/leave")
+async def household_leave(request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(401, "Sign in")
+    hh = await db.households.find_one({"members.user_id": user["user_id"]})
+    if not hh:
+        return {"ok": True}
+    await db.households.update_one(
+        {"household_id": hh["household_id"]},
+        {"$pull": {"members": {"user_id": user["user_id"]}}}
+    )
+    return {"ok": True}
+
 
 
 # =============================================================================

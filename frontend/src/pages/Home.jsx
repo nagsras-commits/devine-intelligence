@@ -10,6 +10,8 @@ import DeityImage from "@/components/DeityImage";
 import DeityOfDayRibbon from "@/components/DeityOfDayRibbon";
 import AartiTimer from "@/components/AartiTimer";
 import FestivalPushOptIn from "@/components/FestivalPushOptIn";
+import VrataCalendar from "@/components/VrataCalendar";
+import TempleLocator from "@/components/TempleLocator";
 import { ArrowRight, Sunrise, CalendarDays, Sparkles, Flame, Hash, PenLine } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -101,6 +103,12 @@ export default function Home() {
       <section className="grid lg:grid-cols-2 gap-6" data-testid="daily-companion">
         <AartiTimer />
         <FestivalPushOptIn />
+      </section>
+
+      {/* Vrata Calendar + Nearby Temples */}
+      <section className="grid lg:grid-cols-2 gap-6" data-testid="dharma-companion">
+        <VrataCalendar />
+        <TempleLocator />
       </section>
 
       {/* EXPLORE — icon grid of every page */}

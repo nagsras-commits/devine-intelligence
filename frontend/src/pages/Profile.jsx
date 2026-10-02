@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import PageHero from "@/components/PageHero";
+import FamilySadhana from "@/components/FamilySadhana";
 import axios from "axios";
 import { LogIn, LogOut, RefreshCw, Cloud, User, ChevronRight } from "lucide-react";
 
@@ -136,6 +137,7 @@ export default function Profile() {
           )}
         </>
       )}
+      <FamilySadhana />
     </div>
   );
 }
