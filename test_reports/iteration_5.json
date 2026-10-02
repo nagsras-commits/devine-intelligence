@@ -1,0 +1,43 @@
+{
+  "summary": "Iteration 5 fully tested — 11/11 backend pytest cases pass (panchangam week + 60-day tithi sweep covers all 1..15, vrata/upcoming returns all 5 vrata types in 45d, 180 cap, household auth gating + full flow with mocked session). Frontend regression also strong: Home shows dharma-companion grid with VrataCalendar + TempleLocator; vrata range selector 45→90 grew entries from ~10 to 21, expand works. TempleLocator with granted geolocation (17.385,78.4867) auto-fetched 12 temples with Google-Maps direction links. Panchangam Birth-Date button opacity transitions 0.6→1.0 after dj-kundali-updated event, click loads 1990-05-15 almanac showing Samvatsara='Prajapati' and Vikrama 2047 as spec'd. RashiChart renders with 12 cells, Lagna 'La' badge, and 9 planet pills — but data-testid naming is broken (see bug below). FamilySadhana shows sign-in hint when logged out and sign-in buttons gated behind auth, matching spec.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "RashiChart.jsx",
+        "issue": "Planet pills receive data-testids like `rashi-planet-sun (ravi)` (full backend name with parentheses + lowercased) instead of the spec'd `rashi-planet-sun`. Backend's astrology.py returns planet names 'Sun (Ravi)', 'Moon (Chandra)', ..., 'Saturn (Shani)' with Rahu/Ketu being plain. Only `rashi-planet-rahu` and `rashi-planet-ketu` match the spec; Sun/Moon/Mars/Mercury/Jupiter/Venus/Saturn testids are malformed. Pills still render visually (abbreviations 'Su','Mo',... derived via .slice(0,2) accidentally still work). Fix: in RashiChart.jsx line 84, derive testid key from first word → `data-testid={`rashi-planet-${p.name.split(' ')[0].toLowerCase()}`}` (and similarly use that key for PLANET_ABBR lookup if desired).",
+        "selector": "[data-testid='rashi-planet-*']",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration5.py",
+    "/app/test_reports/pytest/iter5.xml"
+  ],
+  "action_items": [
+    "Fix RashiChart.jsx planet pill data-testid: use only the first word of planet name (and update PLANET_ABBR lookup / display accordingly). This also makes the abbreviations correct (e.g. 'Saturn (Shani)' currently slices to 'Sa' by accident; a canonical mapping would be more robust)."
+  ],
+  "critical_code_review_comments": [
+    "Backend server.py is 874 lines — approaching the 700-line threshold. Household + Auth + Panchangam + Kundali + Horoscope + Deity-names all live in one file. Consider splitting into routers (/routers/household.py, /routers/vrata.py, etc.).",
+    "RashiChart planet lookup relies on p.name.slice(0,2) fallback which produces correct abbreviations only by coincidence (Mercury→'Me', Saturn→'Sa'). Build an explicit mapping keyed on canonical planet name (first word) and reuse for both abbreviation and testid.",
+    "Household code uniqueness loop retries only 10 times; in a saturated keyspace this could 500. Acceptable at MVP scale (32^6 = ~1B keys)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration5.py"
+  ],
+  "success_rate": {
+    "backend": "100% (11/11)",
+    "frontend": "~95% (one testid naming bug on 7 of 9 Rashi planet pills; all functionality works visually)"
+  },
+  "test_credentials": "Not required — household flow tested via injected mongo session cookie.",
+  "seed_data_creation": "Transient user+session + households for the household flow test are created and torn down in a pytest class fixture. Uses TEST_ prefixed email.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All iter-5 endpoints and components exist and function. Only RashiChart data-testid naming needs a cosmetic fix. Backend test file /app/backend/tests/test_iteration5.py is a stable regression suite — it needs MONGO_URL and DB_NAME env vars when running out of supervisor context. Overpass live API responded within ~20s during this run; curated fallback was not exercised but confirmed to be referenced in TempleLocator source."
+}

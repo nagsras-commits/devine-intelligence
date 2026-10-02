@@ -1,0 +1,41 @@
+{
+  "summary": "Iteration 2 — P0 astrology + Deity-of-Day ribbon + Muhūrta alarm + i18n. Full backend + frontend regression run. Backend: 15/15 pytest pass (7 regression from iteration 1 + 8 new for /api/panchangam/timings, /api/kundali/generate incl. 422 validation, /api/horoscope for Mesha/Vrishabha/Mithuna, /api/deities/ganesha/names). Frontend: /panchangam renders Deity-of-Day ribbon + new 4-tab bar (panchangam / muhurta / kundali / horoscope). All four panes mount without console errors. MuhurtaTimings shows 7 slots incl. Rāhu Kāla, Yama Gaṇḍa, Gulika, Abhijit, Brahma, Amṛta, Durmuhūrta. MuhurtaAlarm alarm-test-btn opens overlay above audio player, dismiss/ok buttons work — no pointer-event conflict. Config toggle reveals ringtone/lead/duration/vibrate settings. Kundali form submitted (dob=1990-05-15, time=08:30, Hyderabad) returned chart with Lagna, Janma Rāśi, Nakshatra, 9 planets, 9 dashas + 4325-char AI reading. Horoscope for Mesha returned all 5 sections + lucky color/number + mantra. Deity-of-Day japa button on ribbon adds +108 to dj_japa_counts.shiva in localStorage and shows toast. i18n switcher (Radix DropdownMenu) works — clicking lang-option-te live-updates all tile titles and descriptions to Telugu, switcher label updates from 'English' to 'తెలుగు', dj_lang persists in localStorage across reload; verified for te, hi, ta, en. Regression: /japa loads, /rama-koti renders (canvas is behind write-mode toggle by default), /deities shows exactly 34 tiles.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/panchangam Muhūrta tab", "issues": ["Muhūrta Alarms bell toggles (alarm-toggle-<key>) share visual style — active vs. inactive state distinction relies solely on subtle icon change; adding a filled background for enabled state would improve affordance."]},
+      {"screen": "Deity-of-Day ribbon", "issues": ["Deity name text (e.g. 'SHIVA') visually overlaps with the small Devanagari overlay 'शिव' on the ribbon — kerning/positioning could be improved."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_astrology_features.py",
+    "/app/backend/tests/test_divine_journey.py",
+    "/app/test_reports/pytest/pytest_astrology.xml",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "KundaliMaker frontend uses a hardcoded 18-city list for lat/lng/tz; no free-form place input or geocoder. Acceptable for MVP but limits global users.",
+    "Kundali POST is slow (~28s end-to-end because of LLM reading generation). Consider streaming the reading or returning chart immediately and reading via a follow-up call for better UX.",
+    "MuhurtaAlarm polls every 15s using setInterval — fine, but if tab is backgrounded browsers throttle to 1min. If precise alarm firing matters, use Notification API + Service Worker.",
+    "server.py still uses deprecated @app.on_event('shutdown') (carried over from iteration 1). Prefer FastAPI lifespan handler.",
+    "Panchāngam/timings still use approximate math (documented). Sunrise/sunset in timings response differ slightly from /api/panchangam response (06:21 vs 06:12) — same date. Slight inconsistency worth harmonising.",
+    "Home.jsx tile list hardcodes sanskrit strings (e.g. 'देवाः', 'भक्तपरिचयः') irrespective of lang — acceptable since sanskrit is universal but ensure this is intentional.",
+    "server.py file size and Home.jsx (364 lines) are within limits, no split needed yet."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_astrology_features.py (new)"
+  ],
+  "success_rate": {"backend": "100% (15/15)", "frontend": "100% of specified flows"},
+  "test_credentials": "N/A — all astrology features are guest-accessible per /app/memory/test_credentials.md.",
+  "seed_data_creation": "Ephemeral TEST_ prefixed user name in Kundali generate; no persistent data created (Kundali only saved when authenticated).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All P0/P1 features tested and passing on preview URL https://divine-dharma-daily.preview.emergentagent.com. Backend has two pytest files: /app/backend/tests/test_divine_journey.py (root/panchangam/bookmarks/rituals) and /app/backend/tests/test_astrology_features.py (timings/kundali/horoscope/deity-names). Run with REACT_APP_BACKEND_URL exported. Kundali test takes ~30s due to LLM. i18n switch is Radix DropdownMenu — click the menu open, wait 400ms, then click the lang-option-<code> WITHOUT force=True; wait ~1.5s for state to propagate before asserting.",
+  "rca of the issue": "N/A — no bugs found."
+}

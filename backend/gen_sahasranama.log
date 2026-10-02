@@ -1,0 +1,340 @@
+Generating sahasranama for 34 deity(s)
+
+[1/34] ganesha — Ganesha (Gaṇapati / Vināyaka)
+  generating 1008…
+    recovered partial JSON in batch 1
+    got 109/168 in batch 1 attempt 1
+    recovered partial JSON in batch 1
+    got 118/168 in batch 1 attempt 2
+    recovered partial JSON in batch 1
+    got 112/168 in batch 1 attempt 3
+    recovered partial JSON in batch 2
+    got 103/168 in batch 2 attempt 1
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_    recovered partial JSON in batch 3
+    got 107/168 in batch 3 attempt 1
+    recovered partial JSON in batch 3
+    got 103/168 in batch 3 attempt 2
+ent cost: 12.74651399999999, Max budget: 12.682045983
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 2 attempt 3: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 12.87033299999999, Max budget: 12.682045983
+    batch 2 FAILED — stopping this deity
+  OK sahasranama (112)
+  saved to MongoDB
+[2/34] shiva — Śiva (Mahādeva / Mahāyogī)
+  generating 1008…
+    recovered partial JSON in batch 1
+    got 117/168 in batch 1 attempt 1
+    recovered partial JSON in batch 1
+    got 116/168 in batch 1 attempt 2
+    recovered partial JSON in batch 1
+    got 115/168 in batch 1 attempt 3
+    recovered partial JSON in batch 2
+    got 111/168 in batch 2 attempt 1
+    recovered partial JSON in batch 2
+    got 120/168 in batch 2 attempt 2
+    recovered partial JSON in batch 2
+    got 117/168 in batch 2 attempt 3
+    recovered partial JSON in batch 3
+    got 112/168 in batch 3 attempt 1
+    recovered partial JSON in batch 3
+    got 106/168 in batch 3 attempt 2
+    recovered partial JSON in batch 3
+    got 111/168 in batch 3 attempt 3
+    recovered partial JSON in batch 4
+    got 113/168 in batch 4 attempt 1
+    recovered partial JSON in batch 4
+    got 109/168 in batch 4 attempt 2
+    recovered partial JSON in batch 4
+    got 113/168 in batch 4 attempt 3
+    recovered partial JSON in batch 5
+    got 106/168 in batch 5 attempt 1
+    recovered partial JSON in batch 5
+    got 116/168 in batch 5 attempt 2
+    recovered partial JSON in batch 5
+    got 115/168 in batch 5 attempt 3
+    recovered partial JSON in batch 6
+    got 116/168 in batch 6 attempt 1
+    recovered partial JSON in batch 6
+    got 110/168 in batch 6 attempt 2
+    recovered partial JSON in batch 6
+    got 116/168 in batch 6 attempt 3
+  OK sahasranama (687)
+  saved to MongoDB
+[3/34] vishnu — Viṣṇu (Nārāyaṇa / Hari)
+  generating 1008…
+    recovered partial JSON in batch 1
+    got 112/168 in batch 1 attempt 1
+    recovered partial JSON in batch 1
+    got 114/168 in batch 1 attempt 2
+    recovered partial JSON in batch 1
+    got 113/168 in batch 1 attempt 3
+    recovered partial JSON in batch 2
+    got 111/168 in batch 2 attempt 1
+    recovered partial JSON in batch 2
+    got 114/168 in batch 2 attempt 2
+    recovered partial JSON in batch 2
+    got 113/168 in batch 2 attempt 3
+    recovered partial JSON in batch 3
+    got 110/168 in batch 3 attempt 1
+    recovered partial JSON in batch 3
+    got 114/168 in batch 3 attempt 2
+    recovered partial JSON in batch 3
+    got 113/168 in batch 3 attempt 3
+    recovered partial JSON in batch 4
+    got 115/168 in batch 4 attempt 1
+    recovered partial JSON in batch 4
+    got 112/168 in batch 4 attempt 2
+    recovered partial JSON in batch 4
+    got 114/168 in batch 4 attempt 3
+    recovered partial JSON in batch 5
+    got 111/168 in batch 5 attempt 1
+    recovered partial JSON in batch 5
+    got 111/168 in batch 5 attempt 2
+    recovered partial JSON in batch 5
+    got 112/168 in batch 5 attempt 3
+    recovered partial JSON in batch 6
+    got 112/168 in batch 6 attempt 1
+    recovered partial JSON in batch 6
+    got 113/168 in batch 6 attempt 2
+    recovered partial JSON in batch 6
+    got 113/168 in batch 6 attempt 3
+  OK sahasranama (678)
+  saved to MongoDB
+[4/34] krishna — Kṛṣṇa (Vāsudeva / Govinda)
+  generating 1008…
+    recovered partial JSON in batch 1
+    got 109/168 in batch 1 attempt 1
+    recovered partial JSON in batch 1
+    got 113/168 in batch 1 attempt 2
+    recovered partial JSON in batch 1
+    got 101/168 in batch 1 attempt 3
+    recovered partial JSON in batch 2
+    got 112/168 in batch 2 attempt 1
+    recovered partial JSON in batch 2
+    got 120/168 in batch 2 attempt 2
+    recovered partial JSON in batch 2
+    got 113/168 in batch 2 attempt 3
+    recovered partial JSON in batch 3
+    got 117/168 in batch 3 attempt 1
+    recovered partial JSON in batch 3
+    got 113/168 in batch 3 attempt 2
+    recovered partial JSON in batch 3
+    got 95/168 in batch 3 attempt 3
+    recovered partial JSON in batch 4
+    got 116/168 in batch 4 attempt 1
+    recovered partial JSON in batch 4
+    got 112/168 in batch 4 attempt 2
+    recovered partial JSON in batch 4
+    got 116/168 in batch 4 attempt 3
+    recovered partial JSON in batch 5
+    got 119/168 in batch 5 attempt 1
+    recovered partial JSON in batch 5
+    got 113/168 in batch 5 attempt 2
+    recovered partial JSON in batch 5
+    got 112/168 in batch 5 attempt 3
+    recovered partial JSON in batch 6
+    got 110/168 in batch 6 attempt 1
+    recovered partial JSON in batch 6
+    got 112/168 in batch 6 attempt 2
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 6 attempt 3: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 25.88080200000001, Max budget: 25.6462346446
+    batch 6 FAILED — stopping this deity
+  OK sahasranama (537)
+  saved to MongoDB
+[5/34] rama — Rāma (Maryādā Puruṣottama / Rāghava)
+  generating 1008…
+    recovered partial JSON in batch 1
+    got 109/168 in batch 1 attempt 1
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 2: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 25.75705500000001, Max budget: 25.6462346446
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 3: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.00464500000001, Max budget: 25.6462346446
+    batch 1 FAILED — stopping this deity
+[6/34] hanuman — Hanumān (Bajaraṅga / Anjaneya)
+  generating 1008…
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 1: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.00464500000001, Max budget: 25.6462346446
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 2: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.25225300000001, Max budget: 25.6462346446
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 3: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.00464500000001, Max budget: 25.6462346446
+    batch 1 FAILED — stopping this deity
+[7/34] lakshmi — Mahālakṣmī
+  generating 1008…
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 1: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.25225300000001, Max budget: 25.6462346446
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 2: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.12839800000001, Max budget: 25.6462346446
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 3: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.12850000000001, Max budget: 25.6462346446
+    batch 1 FAILED — stopping this deity
+[8/34] saraswati — Sarasvatī (Vāgdevī / Śāradā)
+  generating 1008…
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 1: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.12839800000001, Max budget: 25.6462346446
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 2: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.12839800000001, Max budget: 25.6462346446
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 3: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.12839800000001, Max budget: 25.6462346446
+    batch 1 FAILED — stopping this deity
+[9/34] durga — Durgā (Ambikā / Bhavānī)
+  generating 1008…
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 1: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.12839800000001, Max budget: 25.6462346446
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 2: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.12850000000001, Max budget: 25.6462346446
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 3: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.25225300000001, Max budget: 25.6462346446
+    batch 1 FAILED — stopping this deity
+[10/34] subrahmanya — Subrahmaṇya (Muruga / Kārtikeya / Skanda)
+  generating 1008…
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 1: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.25225300000001, Max budget: 25.6462346446
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 2: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.25225300000001, Max budget: 25.6462346446
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 3: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.12850000000001, Max budget: 25.6462346446
+    batch 1 FAILED — stopping this deity
+[11/34] surya — Sūrya (Āditya / Bhāskara)
+  SKIP
+[12/34] ayyappa — Ayyappa (Manikaṇṭha / Dharmaśāstā)
+  SKIP
+[13/34] venkateswara — Veṅkaṭeśvara (Bālājī / Śrīnivāsa)
+  generating 1008…
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 1: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.25225300000001, Max budget: 25.6462346446
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 2: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.12839800000001, Max budget: 25.6462346446
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 3: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.25225300000001, Max budget: 25.6462346446
+    batch 1 FAILED — stopping this deity
+[14/34] padmavathi — Padmāvatī (Alarmelmaṅga)
+  SKIP
+[15/34] narasimha — Narasiṁha
+  SKIP
+[16/34] varaha — Varāha
+  SKIP
+[17/34] varahi — Vārāhī
+  SKIP
+[18/34] dattatreya — Dattātreya
+  SKIP
+[19/34] lalitha — Lalitā Tripura Sundarī (Śrīvidyā)
+  generating 1008…
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 1: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.12839800000001, Max budget: 25.6462346446
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 2: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.25225300000001, Max budget: 25.6462346446
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+    ERR batch 1 attempt 3: Failed to generate chat completion: litellm.BadRequestError: OpenAIException - Budget has been exceeded! Current cost: 26.25225300000001, Max budget: 25.6462346446
+    batch 1 FAILED — stopping this deity
+[20/34] kali — Kālī (Kālikā / Mahākālī)
+  SKIP
+[21/34] navagraha — Navagraha (nine planets — collectively; names of each of Surya, Chandra, Mangala, Budha, Guru, Shukra, Shani, Rahu, Ketu)
+  SKIP
+[22/34] kubera — Kubera (Vaiśravaṇa / Dhaneśa)
+  SKIP
+[23/34] gayatri — Gāyatrī (Vedamātā / Sāvitrī)
+  SKIP
+[24/34] parvathi — Pārvatī (Umā / Gaurī)
+  SKIP
+[25/34] raghavendra — Śrī Guru Rāghavendra Svāmi (Rāyaru of Mantrālaya)
+  SKIP
+[26/34] annapurna — Annapūrṇā (Annadā)
+  SKIP
+[27/34] chamundeshwari — Cāmuṇḍeśvarī
+  SKIP
+[28/34] mahalakshmi_kolhapur — Kolhāpura Mahālakṣmī (Ambābāī)
+  SKIP
+[29/34] ganga — Gaṅgā (Bhāgīrathī / Jāhnavī)
+  SKIP
+[30/34] bhairava — Kālabhairava (Baṭuka Bhairava)
+  SKIP
+[31/34] dhanvantari — Dhanvantari (divine physician)
+  SKIP
+[32/34] santoshi — Santoṣī Mā
+  SKIP
+[33/34] vishwakarma — Viśvakarmā (divine architect)
+  SKIP
+[34/34] veerabrahmendra — Śrī Potuluri Vīrabrahmendra Svāmi (Andhra saint / Kalajnana prophet)
+  SKIP
+
+All done.
+Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0xfb19e9d11490>

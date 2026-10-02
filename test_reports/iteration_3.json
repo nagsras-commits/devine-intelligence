@@ -1,0 +1,33 @@
+{
+  "summary": "Iteration 3 — validated the 5 new enhancements: (1) geo-aware /api/panchangam/timings using pyswisseph, (2) PWA (manifest + service worker), (3) MuhurtaTimings geolocation UI, (4) OS-level browser notifications block in MuhurtaAlarm, (5) Kundali image/PDF/share exports. Backend: 12/12 pytest pass (test_geo_pwa.py) — geolocation sunrise verified for Hyderabad/London/Sydney/NY within tolerance, tz_offset=0 regression, kundali/horoscope/panchangam/ganesha-ashtottara regression, manifest.webmanifest served correctly with all required fields + /japa /rama-koti /panchangam shortcuts, service-worker.js served as application/javascript with schedule-notification handler. Frontend: SW registers with scope '/' (active state=activated). /panchangam Muhūrta tab shows MuhurtaTimings with geo-request-btn when idle; after seeding dj_geo_v1 cache the API refetches with lat/lng params and geo-active pill + accurate footer text 'computed from precise astronomical sunrise/sunset' render; Hyderabad-cached sunrise 05:57 matches API. MuhurtaAlarm: with headless Notification.permission=denied the 'Blocked in browser' text is shown (spec-compliant); alarm-notify-request/alarm-browser-notify hidden as expected. Kundali flow: submitted form (Test, 1990-05-15, 08:30, Hyderabad) → chart+reading rendered ~28s → kundali-export-img downloaded 'kundali-Test-1990-05-15.png'; kundali-export-pdf downloaded 'kundali-Test-1990-05-15.pdf'; kundali-share fallback (no navigator.share in headless) downloaded PNG + toast 'Downloaded — you can share manually'. PWA offline shell: with /static/ blocked, / still returns cached HTML with #root div. /japa increments dj_japa_counts.ganesha; /rama-koti loads (canvas hidden behind write-mode toggle per iteration_2). Home ribbon + hero + explore tiles render fine.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "geo-request-btn click → geo-active refresh", "issue": "Clicking data-testid='geo-request-btn' in-session sets dj_geo_v1 successfully and triggers navigator.geolocation callback, but the follow-up /api/panchangam/timings refetch occasionally still displays source=approximate footer in the current render pass. Reloading the page (which reads dj_geo_v1 cache on mount) fixes the state and geo-active pill appears with correct sunrise. Likely a race between geo.status transitions (idle→loading→ready) and the useEffect that depends on [geo.status, geo.lat, geo.lng]. Pre-seeded cache path works perfectly.", "affected_selectors": ["[data-testid='geo-request-btn']", "[data-testid='geo-active']"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_geo_pwa.py",
+    "/app/test_reports/pytest/pytest_iter3.xml"
+  ],
+  "action_items": [
+    "(Minor UX polish) In MuhurtaTimings, after geo-request-btn click, guarantee a re-fetch of /api/panchangam/timings using the freshly received lat/lng in the same session. Options: (a) call load() directly inside the success callback after setState, or (b) memoize load() with useCallback and add geo.lat/lng deps that fire only when non-null. Reload works as a workaround so this is P2."
+  ],
+  "critical_code_review_comments": [
+    "useGeolocation auto-request path relies on navigator.permissions.query returning 'granted' — in some browsers (Safari, older FF) Permissions API is missing or returns 'prompt' even when previously granted. The 7-day localStorage cache mitigates this for repeat users, which is good.",
+    "service-worker.js SHELL_ASSETS pre-caches only '/' and '/manifest.webmanifest'. The React JS/CSS bundles are only cached on first fetch (runtime cache). Offline-first would benefit from injecting hashed bundle URLs at build time via workbox-webpack-plugin, but current stale-while-revalidate covers repeat visits acceptably.",
+    "MuhurtaTimings uses geo.tz_offset from browser (guessTzOffset) but the browser's timezone may not match the geolocation's actual timezone (e.g. VPN users). Non-critical since the sunrise calc uses lat/lng.",
+    "KundaliMaker html2canvas + jsPDF are dynamic-imported inside export handlers — good for bundle size. However both libraries are >200KB gzip each; consider a subtle loading indicator on first click (currently only the button spinner shows).",
+    "SW schedule-notification uses setTimeout inside SW — modern browsers terminate idle SWs after ~30s, so scheduled alarms >30s in future may not fire without a periodic Wake (Push API/periodic sync). For MVP muhurtas fired every few minutes this is fine; document limitation for users."
+  ],
+  "updated_files": ["/app/backend/tests/test_geo_pwa.py (new)"],
+  "success_rate": { "backend": "100% (12/12)", "frontend": "~95% (geo-request-btn in-session refetch has a UX race but pre-seeded/reload path works)" },
+  "test_credentials": "N/A — all iteration-3 features are guest-accessible.",
+  "seed_data_creation": "None persistent. Kundali test uses name='TEST_geo'/'Test'; not saved server-side without auth.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 3 tests live in /app/backend/tests/test_geo_pwa.py (12 pytest). Iteration 2 tests still valid: test_astrology_features.py and test_divine_journey.py. For Playwright, to validate geo-active state reliably, pre-seed localStorage.dj_geo_v1 with {lat,lng,tz_offset,at,status:'ready',requested:true} BEFORE loading /panchangam — the useGeolocation hook picks it up on mount. Headless Chromium always reports Notification.permission='denied' so the browserNotify checkbox path can only be validated by inspecting /service-worker.js source (already covered in backend test). For Kundali exports, use `async with page.expect_download()` — all three buttons trigger downloads in headless (share falls back to download since navigator.share is absent).",
+  "rca of the issue": "Minor issue: in-session geo-request-btn click sometimes leaves timings on 'approximate' render. RCA: MuhurtaTimings load() reads geo.status at closure time; after request() sets status='loading' the effect fires with lat=null; when status transitions to 'ready' the effect fires again but there's a window where React batching causes a stale render. Repro: fresh browser (no dj_geo_v1), open /panchangam → Muhūrta, click geo-request-btn, wait 3s → geo-active may not appear until reload. Mitigation: call load() inside success callback of navigator.geolocation.getCurrentPosition or add explicit call in the request() function of useGeolocation."
+}
