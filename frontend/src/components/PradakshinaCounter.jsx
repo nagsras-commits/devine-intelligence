@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Flame, RotateCw, RotateCcw, Trash2, Bell, BellOff, Mic, MicOff } from "lucide-react";
 import { useApp } from "@/context/AppContext";
+import { createDevineUtterance } from "@/lib/speech";
 
 const KEY_TODAY = "dj_prad_today"; // { date: 'YYYY-MM-DD', count: n }
 const KEY_LIFE  = "dj_prad_life";
@@ -56,14 +57,8 @@ function speakMantra(text) {
     if (!synth) return;
     // Cancel any queued utterance so rapid taps don't back up
     synth.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = 0.85;
-    u.pitch = 0.9;
+    const u = createDevineUtterance(text);
     u.volume = 0.55;
-    // Prefer an Indian English or Hindi voice when available
-    const voices = synth.getVoices?.() || [];
-    const preferred = voices.find((v) => /hi|IN|Indian|Sanskrit/i.test(v.lang + " " + v.name));
-    if (preferred) u.voice = preferred;
     synth.speak(u);
   } catch {}
 }

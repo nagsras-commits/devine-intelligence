@@ -125,7 +125,10 @@ webpackConfig.devServer = (devServerConfig) => {
     };
   }
 
-  return devServerConfig;
+  return {
+    ...devServerConfig,
+    host: process.env.HOST || "0.0.0.0",
+  };
 };
 
 // Wrap with visual edits (automatically adds babel plugin, dev server, and overlay in dev mode)

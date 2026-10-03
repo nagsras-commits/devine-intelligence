@@ -5,9 +5,10 @@
  *
  * Bump CACHE_VERSION on releases to force refresh.
  */
-const CACHE_VERSION = "devine-v2";
+const CACHE_VERSION = "devine-v3";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
+const scheduledNotificationTimers = new Map();
 
 // Core routes to pre-cache
 const SHELL_ASSETS = [
@@ -74,23 +75,49 @@ self.addEventListener("fetch", (event) => {
   }
 });
 
+self.addEventListener("push", (event) => {
+  let payload = {};
+  try { payload = event.data ? event.data.json() : {}; } catch {}
+  event.waitUntil(
+    self.registration.showNotification(payload.title || "Brahma Muhūrta", {
+      body: payload.body || "Your Brahma Muhūrta practice window has begun.",
+      icon: "/api/static/icons/panchangam.png",
+      badge: "/api/static/icons/panchangam.png",
+      tag: payload.tag || "brahma-muhurta",
+      renotify: true,
+      requireInteraction: true,
+      vibrate: [500, 200, 500, 200, 800],
+      actions: [{ action: "dismiss", title: "Dismiss" }],
+      data: { url: payload.url || "/" },
+    })
+  );
+});
+
 // Support scheduling notifications from page via postMessage
 self.addEventListener("message", (event) => {
   const data = event.data || {};
   if (data.type === "schedule-notification") {
     const { title, body, tag, delayMs, url } = data;
-    setTimeout(() => {
+    const notificationTag = tag || "muhurta";
+    if (notificationTag.startsWith("brahma-muhurta")) {
+      clearTimeout(scheduledNotificationTimers.get(notificationTag));
+    }
+    const timerId = setTimeout(() => {
+      scheduledNotificationTimers.delete(notificationTag);
       self.registration.showNotification(title || "Muhūrta Alarm", {
         body: body || "It is time for the muhūrta.",
         icon: "/api/static/icons/panchangam.png",
         badge: "/api/static/icons/panchangam.png",
-        tag: tag || "muhurta",
+        tag: notificationTag,
         renotify: true,
         vibrate: [500, 200, 500, 200, 800],
         requireInteraction: true,
         data: { url: url || "/panchangam" },
       });
     }, Math.max(0, delayMs || 0));
+    if (notificationTag.startsWith("brahma-muhurta")) {
+      scheduledNotificationTimers.set(notificationTag, timerId);
+    }
   } else if (data.type === "show-notification") {
     self.registration.showNotification(data.title || "Muhūrta Alarm", {
       body: data.body || "",
@@ -101,6 +128,20 @@ self.addEventListener("message", (event) => {
       requireInteraction: true,
       data: { url: data.url || "/panchangam" },
     });
+  } else if (data.type === "cancel-brahma-notifications") {
+    for (const [tag, timerId] of scheduledNotificationTimers) {
+      if (tag.startsWith("brahma-muhurta")) {
+        clearTimeout(timerId);
+        scheduledNotificationTimers.delete(tag);
+      }
+    }
+    event.waitUntil(
+      self.registration.getNotifications().then((notifications) => {
+        notifications
+          .filter((notification) => notification.tag.startsWith("brahma-muhurta"))
+          .forEach((notification) => notification.close());
+      })
+    );
   } else if (data.type === "skip-waiting") {
     self.skipWaiting();
   }
@@ -108,6 +149,7 @@ self.addEventListener("message", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+  if (event.action === "dismiss") return;
   const target = (event.notification.data && event.notification.data.url) || "/panchangam";
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {

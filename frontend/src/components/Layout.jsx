@@ -3,7 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
 import { LANGUAGES, t } from "@/lib/i18n";
 import { BACKGROUND_CHANTS } from "@/data/deities";
-import { Volume2, VolumeX, Volume1, Home, Sunrise, Sparkles, CalendarDays, Music2, Languages, X, Flame, Leaf, Hash, PenLine, LogIn, User } from "lucide-react";
+import { Volume2, VolumeX, Volume1, Home, Sunrise, Sparkles, CalendarDays, Music2, Languages, X, Flame, Leaf, Hash, PenLine, LogIn, User, ScrollText } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -41,6 +41,7 @@ export default function Layout({ children }) {
     { to: "/deities", label: t(lang, "deities"), icon: Sparkles, key: "deities" },
     { to: "/panchangam", label: t(lang, "panchangam"), icon: CalendarDays, key: "panchangam" },
     { to: "/festivals", label: t(lang, "festivals"), icon: Music2, key: "festivals" },
+    { to: "/vrathalu", label: "Vrathalu & Nomulu", icon: ScrollText, key: "vrathalu" },
   ];
 
   return (
@@ -52,15 +53,14 @@ export default function Layout({ children }) {
           scrolled ? "backdrop-blur-xl bg-background/85 border-b border-[hsl(var(--gold)/0.35)]" : "bg-background/60 backdrop-blur-sm"
         }`}
       >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center gap-4">
-          <NavLink to="/" data-testid="brand-link" className="flex items-center gap-3 group">
-            <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden diya-glow-strong ring-2 ring-[hsl(var(--gold)/0.7)] shrink-0">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center gap-2 sm:gap-4">
+          <NavLink to="/" data-testid="brand-link" className="flex items-center gap-2 sm:gap-3 group">
+            <div className="relative w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden diya-glow-strong ring-2 ring-[hsl(var(--gold)/0.7)] shrink-0">
               <img src={LOGO_URL} alt="Devine Intelligence" className="w-full h-full object-cover animate-flicker" />
             </div>
             <div className="leading-tight" data-testid="brand-title">
               <div
-                className="font-display font-bold text-lg sm:text-xl md:text-2xl lg:text-[26px] whitespace-nowrap text-gold-shimmer"
-                style={{ letterSpacing: "0.14em" }}
+                className="font-display font-bold text-xs tracking-[0.04em] sm:text-xl sm:tracking-[0.14em] md:text-2xl lg:text-[26px] whitespace-nowrap text-gold-shimmer"
               >
                 DEVINE INTELLIGENCE
               </div>
@@ -153,7 +153,7 @@ export default function Layout({ children }) {
       {/* PERSISTENT AUDIO PLAYER */}
       <div
         data-testid="persistent-audio-player"
-        className="fixed bottom-0 inset-x-0 z-50 backdrop-blur-xl bg-background/85 border-t border-[hsl(var(--gold)/0.5)]"
+        className="fixed bottom-0 inset-x-0 z-50 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl bg-background/85 border-t border-[hsl(var(--gold)/0.5)]"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center gap-3">
           <button

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import { createDevineUtterance } from "@/lib/speech";
 import { DEITIES } from "@/data/deities";
 import { useApp } from "@/context/AppContext";
 import { pickLang } from "@/lib/i18n";
@@ -68,8 +69,7 @@ export default function DeityOfDayRibbon() {
   const playMantra = () => {
     // Play the mula mantra as a sloka using the audio system (SpeechSynthesis fallback)
     if ("speechSynthesis" in window) {
-      const u = new SpeechSynthesisUtterance(deity.mula_mantra.en);
-      u.rate = 0.75; u.pitch = 0.9; u.volume = 1;
+      const u = createDevineUtterance(deity.mula_mantra.en);
       speechSynthesis.cancel();
       speechSynthesis.speak(u);
     }

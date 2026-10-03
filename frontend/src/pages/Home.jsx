@@ -9,6 +9,7 @@ import { FESTIVALS } from "@/data/festivals";
 import DeityImage from "@/components/DeityImage";
 import DeityOfDayRibbon from "@/components/DeityOfDayRibbon";
 import AartiTimer from "@/components/AartiTimer";
+import BrahmaMuhurtaAlarm from "@/components/BrahmaMuhurtaAlarm";
 import FestivalPushOptIn from "@/components/FestivalPushOptIn";
 import VrataCalendar from "@/components/VrataCalendar";
 import TempleLocator from "@/components/TempleLocator";
@@ -104,6 +105,8 @@ export default function Home() {
         <AartiTimer />
         <FestivalPushOptIn />
       </section>
+
+      <BrahmaMuhurtaAlarm />
 
       {/* Vrata Calendar + Nearby Temples */}
       <section className="grid lg:grid-cols-2 gap-6" data-testid="dharma-companion">

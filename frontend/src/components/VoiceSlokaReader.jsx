@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Mic, Square, Loader2 } from "lucide-react";
 import { useApp } from "@/context/AppContext";
+import { createDevineUtterance } from "@/lib/speech";
 
 /**
  * VoiceSlokaReader — narrates a Sanskrit sloka using the browser's
@@ -41,16 +42,8 @@ export default function VoiceSlokaReader({ text, meaning, langHint = "hi-IN", si
     const synth = window.speechSynthesis;
     try { synth.cancel(); } catch {}
 
-    const u = new SpeechSynthesisUtterance(text);
+    const u = createDevineUtterance(text);
     u.lang = langHint;
-    u.rate = 0.75;
-    u.pitch = 1.0;
-    u.volume = 1.0;
-    // Prefer an Indic voice if available
-    const voices = synth.getVoices();
-    const indic = voices.find((v) => /hi|sa|IN/i.test(v.lang)) || voices.find((v) => /Devan|Hindi|India/i.test(v.name));
-    if (indic) u.voice = indic;
-
     let charOffset = 0;
     u.onstart = () => setSpeaking(true);
     u.onboundary = (evt) => {
@@ -72,10 +65,7 @@ export default function VoiceSlokaReader({ text, meaning, langHint = "hi-IN", si
       if (bgWasPlayingRef.current) playBg?.().catch?.(() => {});
       // Read English meaning as an appendix
       if (meaning) {
-        const m = new SpeechSynthesisUtterance(meaning);
-        m.lang = "en-IN"; m.rate = 0.9;
-        const enVoice = voices.find((v) => /en-IN|en-GB|en-US/i.test(v.lang));
-        if (enVoice) m.voice = enVoice;
+        const m = createDevineUtterance(meaning);
         synth.speak(m);
       }
     };

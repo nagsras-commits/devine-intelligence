@@ -73,8 +73,12 @@
 
 @layer base {
   * { @apply border-border; }
+  html, body, #root { width: 100%; min-height: 100%; }
   html, body { @apply bg-background text-foreground; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   body {
+    min-width: 320px;
+    overflow-x: clip;
     font-family: "Lora", "Cormorant Garamond", Georgia, serif;
     -webkit-font-smoothing: antialiased;
     background-image:
@@ -82,7 +86,7 @@
       radial-gradient(900px 500px at 100% 0%, hsl(var(--gold) / 0.10), transparent 60%),
       radial-gradient(700px 400px at 50% 100%, hsl(var(--kumkum) / 0.06), transparent 60%);
     background-attachment: fixed;
-    padding-bottom: 96px; /* space for persistent audio bar */
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
   }
   h1, h2, h3, h4 { font-family: "Cormorant Garamond", "Marcellus", serif; letter-spacing: 0.005em; }
   .font-display { font-family: "Cinzel", "Marcellus", serif; letter-spacing: 0.06em; }
@@ -91,6 +95,13 @@
   .font-tamil { font-family: "Noto Serif Tamil", serif; }
 
   ::selection { background: hsl(var(--gold) / 0.35); color: hsl(var(--foreground)); }
+}
+
+@media (pointer: coarse) {
+  button, [role="button"], input, select, summary {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
 }
 
 @layer components {

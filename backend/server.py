@@ -2,9 +2,13 @@ from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Cookie
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import ReturnDocument
 import os
 import logging
+import asyncio
+import hashlib
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict, Any
@@ -14,6 +18,7 @@ date = date_cls  # backward-compat alias for existing panchangam code
 import math
 import httpx
 import json
+from brahma_alarm import compute_next_brahma_alarm, vapid_configuration
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -695,6 +700,83 @@ async def get_muhurta_timings(
     return {"date": d.isoformat(), "sunrise": sunrise, "sunset": sunset, "source": source, "timings": timings}
 
 
+class BrahmaAlarmSubscription(BaseModel):
+    subscription: Dict[str, Any]
+    lat: float = Field(..., ge=-90, le=90)
+    lng: float = Field(..., ge=-180, le=180)
+    time_zone: str = Field(..., min_length=1, max_length=64)
+    tz_offset: float = Field(..., ge=-14, le=14)
+
+
+def _push_endpoint_id(endpoint: str) -> str:
+    return hashlib.sha256(endpoint.encode("utf-8")).hexdigest()
+
+
+@api_router.get("/brahma-alarm/config")
+async def get_brahma_alarm_config():
+    config = vapid_configuration()
+    return {"available": bool(config), "public_key": config["public_key"] if config else None}
+
+
+@api_router.get("/brahma-alarm/subscription")
+async def get_brahma_alarm_subscription(endpoint: str):
+    doc = await db.brahma_alarm_subscriptions.find_one(
+        {"_id": _push_endpoint_id(endpoint), "enabled": True},
+        {"_id": 0, "enabled": 1, "next_alarm_at": 1, "next_alarm_date": 1},
+    )
+    return {
+        "enabled": bool(doc),
+        "next_alarm_at": doc["next_alarm_at"].isoformat() if doc and doc.get("next_alarm_at") else None,
+        "next_alarm_date": doc.get("next_alarm_date") if doc else None,
+    }
+
+
+@api_router.post("/brahma-alarm/subscription")
+async def enable_brahma_alarm(payload: BrahmaAlarmSubscription):
+    if not vapid_configuration():
+        raise HTTPException(503, "Background alarm delivery is not configured on this server")
+    subscription = payload.subscription
+    endpoint = subscription.get("endpoint")
+    keys = subscription.get("keys") or {}
+    if not isinstance(endpoint, str) or not endpoint.startswith("https://") or not keys.get("p256dh") or not keys.get("auth"):
+        raise HTTPException(400, "Invalid browser push subscription")
+
+    alarm_date, alarm_at = await asyncio.to_thread(
+        compute_next_brahma_alarm,
+        payload.lat,
+        payload.lng,
+        payload.time_zone,
+        payload.tz_offset,
+    )
+    now = datetime.now(timezone.utc)
+    await db.brahma_alarm_subscriptions.update_one(
+        {"_id": _push_endpoint_id(endpoint)},
+        {
+            "$set": {
+                "subscription": subscription,
+                "lat": payload.lat,
+                "lng": payload.lng,
+                "time_zone": payload.time_zone,
+                "tz_offset": payload.tz_offset,
+                "enabled": True,
+                "next_alarm_at": alarm_at,
+                "next_alarm_date": alarm_date.isoformat(),
+                "updated_at": now,
+            },
+            "$unset": {"claim_until": ""},
+            "$setOnInsert": {"created_at": now},
+        },
+        upsert=True,
+    )
+    return {"enabled": True, "next_alarm_at": alarm_at.isoformat(), "next_alarm_date": alarm_date.isoformat()}
+
+
+@api_router.delete("/brahma-alarm/subscription")
+async def disable_brahma_alarm(endpoint: str):
+    result = await db.brahma_alarm_subscriptions.delete_one({"_id": _push_endpoint_id(endpoint)})
+    return {"enabled": False, "cancelled": result.deleted_count > 0}
+
+
 class KundaliRequest(BaseModel):
     name: Optional[str] = None
     dob: str = Field(..., description="YYYY-MM-DD")
@@ -856,18 +938,162 @@ app.include_router(api_router)
 # Mount static images (deity portraits) — accessible at /api/static/deities/{id}.png
 app.mount("/api/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
+cors_origins = [origin.strip() for origin in os.environ.get("CORS_ORIGINS", "").split(",") if origin.strip()]
+if not cors_origins:
+    cors_origins = [
+        "https://devineinintelligence.com",
+        "https://www.devineinintelligence.com",
+        "https://divine-dharma-daily.preview.emergentagent.com",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+
+allowed_hosts = [host.strip() for host in os.environ.get("ALLOWED_HOSTS", "").split(",") if host.strip()]
+if not allowed_hosts:
+    allowed_hosts = [
+        "devineinintelligence.com",
+        "www.devineinintelligence.com",
+        "divine-dharma-daily.preview.emergentagent.com",
+        "localhost",
+        "127.0.0.1",
+        "testserver",
+    ]
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=allowed_hosts,
 )
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
+async def _send_brahma_push(subscription, payload, config):
+    from pywebpush import webpush
+
+    await asyncio.to_thread(
+        webpush,
+        subscription_info=subscription,
+        data=json.dumps(payload),
+        vapid_private_key=config["private_key"],
+        vapid_claims={"sub": config["subject"]},
+        ttl=60,
+        timeout=15,
+    )
+
+
+async def _process_due_brahma_alarms():
+    config = vapid_configuration()
+    if not config:
+        return
+
+    collection = db.brahma_alarm_subscriptions
+    now = datetime.now(timezone.utc)
+    due = await collection.find({"enabled": True, "next_alarm_at": {"$lte": now}}).to_list(100)
+    for candidate in due:
+        claim_until = now + timedelta(minutes=1)
+        claimed = await collection.find_one_and_update(
+            {
+                "_id": candidate["_id"],
+                "enabled": True,
+                "next_alarm_at": {"$lte": now},
+                "$or": [
+                    {"claim_until": {"$exists": False}},
+                    {"claim_until": {"$lte": now}},
+                ],
+            },
+            {"$set": {"claim_until": claim_until}},
+            return_document=ReturnDocument.AFTER,
+        )
+        if not claimed:
+            continue
+
+        try:
+            next_date, next_at = await asyncio.to_thread(
+                compute_next_brahma_alarm,
+                claimed["lat"],
+                claimed["lng"],
+                claimed["time_zone"],
+                claimed["tz_offset"],
+                now + timedelta(seconds=1),
+            )
+            if (now - claimed["next_alarm_at"].replace(tzinfo=timezone.utc)).total_seconds() > 60:
+                await collection.update_one(
+                    {"_id": claimed["_id"], "claim_until": claim_until},
+                    {"$set": {"next_alarm_at": next_at, "next_alarm_date": next_date.isoformat()}, "$unset": {"claim_until": ""}},
+                )
+                continue
+
+            await _send_brahma_push(
+                claimed["subscription"],
+                {
+                    "title": "Brahma Muhūrta",
+                    "body": "Your local Brahma Muhūrta practice window has begun.",
+                    "url": "/",
+                    "tag": f"brahma-muhurta-{claimed['next_alarm_date']}",
+                },
+                config,
+            )
+            await collection.update_one(
+                {"_id": claimed["_id"], "claim_until": claim_until},
+                {
+                    "$set": {
+                        "next_alarm_at": next_at,
+                        "next_alarm_date": next_date.isoformat(),
+                        "last_sent_at": now,
+                    },
+                    "$unset": {"claim_until": ""},
+                },
+            )
+        except Exception as error:
+            status_code = getattr(getattr(error, "response", None), "status_code", None)
+            if status_code in (404, 410):
+                await collection.delete_one({"_id": claimed["_id"]})
+                continue
+            logger.exception("Brahma Muhurta push delivery failed")
+            await collection.update_one(
+                {"_id": claimed["_id"], "claim_until": claim_until},
+                {"$unset": {"claim_until": ""}},
+            )
+
+
+async def _brahma_alarm_worker():
+    while True:
+        try:
+            await _process_due_brahma_alarms()
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("Brahma Muhurta scheduler iteration failed")
+        await asyncio.sleep(5)
+
+
+_brahma_alarm_task = None
+
+
+@app.on_event("startup")
+async def start_brahma_alarm_worker():
+    global _brahma_alarm_task
+    if not vapid_configuration():
+        logger.warning("Brahma Muhurta Web Push is disabled; configure VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY")
+        return
+    await db.brahma_alarm_subscriptions.create_index([("enabled", 1), ("next_alarm_at", 1)])
+    _brahma_alarm_task = asyncio.create_task(_brahma_alarm_worker())
+
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    if _brahma_alarm_task:
+        _brahma_alarm_task.cancel()
+        try:
+            await _brahma_alarm_task
+        except asyncio.CancelledError:
+            pass
     client.close()
